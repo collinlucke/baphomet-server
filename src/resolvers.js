@@ -1,31 +1,31 @@
-import db from '../db/connection.js';
+import db from '../server/db/connection.js';
 import { ObjectId } from 'mongodb';
 
 const resolvers = {
   Movie: {
-    id: (parent) => parent.id ?? parent._id,
+    id: parent => parent.id ?? parent._id
   },
   Query: {
-    async movie(_, { id }) {
-      console.log(id);
+    async getMovie(_, { id }) {
       let collection = db.collection('movies');
       let query = { _id: new ObjectId(id.toString()) };
-      console.log(query);
-
       return await collection.findOne(query);
     },
-    async movies(_, __, context) {
+    async getAllMovies(_, { limit }, context) {
       let collection = db.collection('movies');
-      const movies = await collection.find({}).toArray();
-      return movies;
-    },
+      const movies = await collection
+        .find({})
+        .limit(limit ? limit : 0)
+        .toArray();
+      return await movies;
+    }
   },
   Mutation: {
-    async addMovie(_, { title, year, rated }, context) {
+    async addMovie(_, { title, year, rated, poster }, context) {
       let collection = db.collection('movies');
-      const insert = await collection.insertOne({ title, year, rated });
+      const insert = await collection.insertOne({ title, year, rated, poster });
       if (insert.acknowledged)
-        return { title, year, rated, id: insert.insertedId };
+        return { title, year, rated, poster, id: insert.insertedId };
       return null;
     },
     async updateMovie(_, args, context) {
@@ -40,10 +40,12 @@ const resolvers = {
     },
     async deleteMovie(_, { id }, context) {
       let collection = db.collection('movies');
-      const dbDelete = await collection.deleteOne({ _id: new ObjectId(id) });
+      const dbDelete = await collection.deleteOne({
+        _id: new ObjectId(id)
+      });
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
-    },
-  },
+    }
+  }
 };
 
 export default resolvers;

@@ -1,20 +1,16 @@
 import express from 'express';
-
-// This will help us connect to the database
 import db from '../db/connection.js';
-
-// This helps convert the id from string to ObjectId for the _id.
 import { ObjectId } from 'mongodb';
 
-// router is an instance of the express router.
-// We use it to define our routes.
-// The router will be added as a middleware and will take control of requests starting with path /movie.
 const router = express.Router();
 
-// This section will help you get a list of all the movies.
 router.get('/', async (req, res) => {
   let collection = db.collection('movies');
-  let results = await collection.find({}).toArray();
+  let limit = req.params.limit;
+  let results = await collection
+    .find(query)
+    .limit(limit ? limit : 0)
+    .toArray();
   res.send(results).status(200);
 });
 
@@ -35,6 +31,7 @@ router.post('/', async (req, res) => {
       title: req.body.title,
       year: req.body.year,
       rated: req.body.rated,
+      poster: req.body.poster
     };
     let collection = db.collection('movies');
     let result = await collection.insertOne(newMovie);
@@ -54,7 +51,8 @@ router.patch('/:id', async (req, res) => {
         title: req.body.title,
         year: req.body.year,
         rated: req.body.rated,
-      },
+        poster: rer.body.poster
+      }
     };
 
     let collection = db.collection('movies');

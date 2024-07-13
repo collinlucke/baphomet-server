@@ -1,0 +1,29 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  getMovie(id: ID!): Movie
+  getAllMovies(limit: Int): [Movie]
+}
+
+type Mutation {
+  addMovie(title: String!, year: Int, rated: String, poster: String): Movie
+  updateMovie(
+    id: ID!
+    title: String
+    year: Int
+    rated: String
+    poster: String
+  ): Movie
+  deleteMovie(id: ID!): Boolean
+}
+
+type Movie {
+  id: ID
+  title: String
+  year: String
+  rated: String
+  poster: String
+}

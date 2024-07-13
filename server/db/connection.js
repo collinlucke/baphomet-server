@@ -12,10 +12,7 @@ const client = new MongoClient(uri, {
 });
 
 try {
-  // Connect the client to the server
   await client.connect();
-
-  // Send ping to confirm a successful connection
   await client.db('admin').command({ ping: 1 });
 
   console.log('Pinged your deployment. You successfully connected to MongoDB!');
