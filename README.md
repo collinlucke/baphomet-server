@@ -1,4 +1,4 @@
-# baphomet-ui
+# baphomet-server
 
 ...Not much to say at the moment.
 
