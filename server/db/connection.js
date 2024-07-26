@@ -20,6 +20,6 @@ try {
   console.error(err);
 }
 
-let db = client.db(process.env.COLLECTION_NAME);
+let db = client.db(process.env.ATLAS_DB_NAME);
 
 export default db;
