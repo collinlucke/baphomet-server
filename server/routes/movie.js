@@ -51,7 +51,7 @@ router.patch('/:id', async (req, res) => {
         title: req.body.title,
         year: req.body.year,
         rated: req.body.rated,
-        poster: rer.body.poster
+        poster: req.body.poster
       }
     };
 
