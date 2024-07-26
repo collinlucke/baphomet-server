@@ -20,6 +20,6 @@ try {
   console.error(err);
 }
 
-let db = client.db('sample_mflix');
+let db = client.db(process.env.COLLECTION_NAME);
 
 export default db;
