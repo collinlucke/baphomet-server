@@ -1,0 +1,44 @@
+name: Deploy Baphomet Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+      - name: Login to Docker Hub
+        run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
+      - name: Build Docker Image
+        run: docker build -t collinlucke/baphomet-server .
+      - name: Publish to Docker Hub
+        run: docker push collinlucke/baphomet-server:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull Image from Docker Hub
+        run: docker pull collinlucke/baphomet-server:latest
+      - name: Run Docker Container
+        run: docker run -d -p 5050:5050 --name baphomet-server-container -e ATLAS_DB_PASSWORD=`${{ secrets.ATLAS_DB_PASSWORD }}` collinlucke/baphomet-server
+
+
+
+
+
+
+
+
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+          docker pull collinlucke/baphomet-server
+          docker stop baphomet-server
+      
