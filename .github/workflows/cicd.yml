@@ -15,7 +15,7 @@ jobs:
         run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
       - name: Build Docker Image
         run: docker build -t collinlucke/baphomet-server .
-      - name: Publish to Docker Hub
+      - name: Publish Image to Docker Hub
         run: docker push collinlucke/baphomet-server:latest
 
   deploy:
