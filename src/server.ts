@@ -24,6 +24,10 @@ const server = new ApolloServer({
   schema: buildSubgraphSchema({ typeDefs, resolvers })
 });
 
+app.get('/', (req, res) => {
+  res.send(`What's up my Ninjas!`);
+});
+
 await server.start();
 
 app.use('/movies', movies);
