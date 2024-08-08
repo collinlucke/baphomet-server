@@ -1,7 +1,8 @@
-FROM node:alpine3.18
+FROM node:latest
 WORKDIR /app
-COPY package.json ./
+COPY package*.json ./
 RUN npm install
 COPY . .
+COPY .env ./
 EXPOSE 5050
-CMD [ "npm", "run", "start" ]
+CMD ["npm", "start"]
