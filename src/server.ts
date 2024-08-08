@@ -8,7 +8,7 @@ import { expressMiddleware } from '@apollo/server/express4';
 import resolvers from '../src/resolvers.js';
 import { readFileSync } from 'fs';
 
-const PORT = 5050;
+const PORT = 80;
 const app = express();
 
 app.use(cors());
@@ -32,5 +32,5 @@ app.use('/graphql', cors(), express.json(), expressMiddleware(server));
 
 // start the Express server
 app.listen(PORT, () => {
-  console.log(`🚀 Server listening on port ${PORT}`);
+  console.log(`🚀 Server listening on port ${80}`);
 });
