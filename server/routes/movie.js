@@ -4,18 +4,14 @@ import { ObjectId } from 'mongodb';
 
 const router = express.Router();
 
-// router.get('/', async (req, res) => {
-//   let collection = db.collection('movies');
-//   let limit = req.params.limit;
-//   let results = await collection
-//     .find(query)
-//     .limit(limit ? limit : 0)
-//     .toArray();
-//   res.send(results).status(200);
-// });
-
-router.get('/', (req, res) => {
-  res.send('Did you get here?');
+router.get('/', async (req, res) => {
+  let collection = db.collection('movies');
+  let limit = req.params.limit;
+  let results = await collection
+    .find(query)
+    .limit(limit ? limit : 0)
+    .toArray();
+  res.send(results).status(200);
 });
 
 // This section will help you get a single movie by id
