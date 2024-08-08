@@ -4,5 +4,5 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 COPY .env ./
-EXPOSE 80
+EXPOSE 5050
 CMD ["npm", "start"]

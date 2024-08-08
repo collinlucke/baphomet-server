@@ -7,7 +7,7 @@ import { buildSubgraphSchema } from '@apollo/subgraph';
 import { expressMiddleware } from '@apollo/server/express4';
 import resolvers from '../src/resolvers.js';
 import { readFileSync } from 'fs';
-const PORT = 80;
+const PORT = 5050;
 const app = express();
 app.use(cors());
 app.use(express.json());
