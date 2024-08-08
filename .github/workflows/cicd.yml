@@ -25,7 +25,7 @@ jobs:
       - name: Pull Image from Docker Hub
         run: docker pull collinlucke/baphomet-server:latest
       - name: Run Docker Container
-        run: docker run -d -p 5050:5050 --name baphomet-server-container -e ATLAS_DB_PASSWORD=`${{ secrets.ATLAS_DB_PASSWORD }}` collinlucke/baphomet-server
+        run: docker run -d -p 5050:5050 --name baphomet-server-container -e ATLAS_DB_PASSWORD='${{ secrets.ATLAS_DB_PASSWORD }}' collinlucke/baphomet-server
 
 
 
