@@ -26,15 +26,10 @@ const server = new ApolloServer({
 
 await server.start();
 
-app.get('/', (req, res) => {
-  res.send('Hello World, from express');
-});
+app.use('/movies', movies);
 
-// app.use('/movies', movies);
-// The path to mount the server
-// app.use('/graphql', cors(), express.json(), expressMiddleware(server));
+app.use('/graphql', cors(), express.json(), expressMiddleware(server));
 
-// start the Express server
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
 });
