@@ -21,9 +21,15 @@ const resolvers = {
     }
   },
   Mutation: {
-    async addMovie(_, { title, year, rated, poster }, context) {
+    async addMovie(_, { title, year, rated, poster, fullplot }, context) {
       let collection = db.collection('movies');
-      const insert = await collection.insertOne({ title, year, rated, poster });
+      const insert = await collection.insertOne({
+        title,
+        year,
+        rated,
+        poster,
+        fullplot
+      });
       if (insert.acknowledged)
         return { title, year, rated, poster, id: insert.insertedId };
       return null;
