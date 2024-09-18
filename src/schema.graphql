@@ -9,13 +9,14 @@ type Query {
 }
 
 type Mutation {
-  addMovie(title: String!, year: Int, rated: String, poster: String): Movie
+  addMovie(title: String!, year: Int, rated: String, poster: String, fullplot: String): Movie
   updateMovie(
     id: ID!
     title: String
     year: Int
     rated: String
     poster: String
+    fullplot: String
   ): Movie
   deleteMovie(id: ID!): Boolean
 }
@@ -26,4 +27,5 @@ type Movie {
   year: String
   rated: String
   poster: String
+  fullplot: String
 }
