@@ -14,7 +14,6 @@ router.get('/', async (req, res) => {
   res.send(results).status(200);
 });
 
-// This section will help you get a single movie by id
 router.get('/:id', async (req, res) => {
   let collection = db.collection('movies');
   let query = { _id: new ObjectId(req.params.id) };
@@ -24,7 +23,6 @@ router.get('/:id', async (req, res) => {
   else res.send(result).status(200);
 });
 
-// This section will help you create a new movie.
 router.post('/', async (req, res) => {
   try {
     let newMovie = {
@@ -42,7 +40,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// This section will help you update a movie by id.
 router.patch('/:id', async (req, res) => {
   try {
     const query = { _id: new ObjectId(req.params.id) };

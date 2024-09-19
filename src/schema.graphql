@@ -5,7 +5,7 @@ schema {
 
 type Query {
   getMovie(id: ID!): Movie
-  getAllMovies(limit: Int): [Movie]
+  getAllMovies(limit: Int, searchTerm: String): [Movie]
 }
 
 type Mutation {

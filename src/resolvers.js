@@ -11,10 +11,11 @@ const resolvers = {
       let query = { _id: new ObjectId(id.toString()) };
       return await collection.findOne(query);
     },
-    async getAllMovies(_, { limit }, context) {
+    async getAllMovies(_, { limit, searchTerm }, context) {
       let collection = db.collection('movies');
       const movies = await collection
-        .find({})
+        .find({ title: new RegExp(searchTerm, 'i') })
+        .sort({ title: 1 })
         .limit(limit ? limit : 0)
         .toArray();
       return await movies;
