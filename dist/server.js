@@ -7,6 +7,7 @@ import { buildSubgraphSchema } from '@apollo/subgraph';
 import { expressMiddleware } from '@apollo/server/express4';
 import resolvers from '../src/resolvers.js';
 import { readFileSync } from 'fs';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 const PORT = 5050;
 const app = express();
 app.use(cors());
@@ -15,7 +16,10 @@ const typeDefs = gql(readFileSync('./src/schema.graphql', {
     encoding: 'utf-8'
 }));
 const server = new ApolloServer({
-    schema: buildSubgraphSchema({ typeDefs, resolvers })
+    schema: buildSubgraphSchema({ typeDefs, resolvers }),
+    // PreSvent direct access to /graphql
+    introspection: process.env.NODE_ENV !== 'production',
+    plugins: [process.env.NODE_ENV === 'production' ? ApolloServerPluginLandingPageDisabled() : null]
 });
 await server.start();
 app.use('/movies', movies);

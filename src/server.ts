@@ -7,6 +7,7 @@ import { buildSubgraphSchema } from '@apollo/subgraph';
 import { expressMiddleware } from '@apollo/server/express4';
 import resolvers from '../src/resolvers.js';
 import { readFileSync } from 'fs';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
 
 const PORT = 5050;
 const app = express();
@@ -21,7 +22,9 @@ const typeDefs = gql(
 );
 
 const server = new ApolloServer({
-  schema: buildSubgraphSchema({ typeDefs, resolvers })
+  schema: buildSubgraphSchema({ typeDefs, resolvers }),
+  introspection: process.env.NODE_ENV !== 'production',
+  plugins: [process.env.NODE_ENV === 'production' ? ApolloServerPluginLandingPageDisabled() : null]
 });
 
 await server.start();
