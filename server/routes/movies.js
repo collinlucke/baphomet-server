@@ -61,7 +61,6 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// This section will help you delete a movie
 router.delete('/:id', async (req, res) => {
   try {
     const query = { _id: new ObjectId(req.params.id) };
