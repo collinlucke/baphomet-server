@@ -18,11 +18,13 @@
     "@apollo/server": "^4.10.4",
     "@apollo/subgraph": "^2.7.6",
     "apollo-server-core": "^3.13.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.6.0",
     "ts-node": "^10.9.2"
   },
