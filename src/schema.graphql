@@ -6,6 +6,7 @@ schema {
 type Query {
   getMovie(id: ID!): Movie
   getAllMovies(limit: Int, searchTerm: String): [Movie]
+  currentUser: User
 }
 
 type Mutation {
@@ -18,7 +19,9 @@ type Mutation {
     poster: String
     fullplot: String
   ): Movie
-  deleteMovie(id: ID!): Boolean
+  deleteMovie(id: ID!): Boolean,
+  signup(email: String, password: String): AuthPayload,
+  login(email: String, password: String): AuthPayload,
 }
 
 type Movie {
@@ -28,4 +31,15 @@ type Movie {
   rated: String
   poster: String
   fullplot: String
+}
+
+type User {
+  id: ID!
+  email: String!
+  password: String!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
 }
