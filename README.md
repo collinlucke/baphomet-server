@@ -3,7 +3,12 @@
 ...Not much to say at the moment.
 
 Backend for the [baphomet-ui](https://github.com/collinlucke/baphomet-ui) project.
-crazy
+<br/>
+Go figure...
+
+### To dos... like, I guess
+- Tap into the TMDB API
+
 <br>
 <br>
 <br>
