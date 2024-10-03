@@ -10,11 +10,11 @@ type Query {
 }
 
 type Mutation {
-  addMovie(title: String!, releaseDate: Int, rated: String, poster: String, fullplot: String): Movie
+  addMovie(title: String!, releaseDate: String, rated: String, poster: String, fullplot: String): Movie
   updateMovie(
     id: ID!
     title: String
-    releaseDate: Int
+    releaseDate: String
     rated: String
     poster: String
     fullplot: String
