@@ -24,17 +24,17 @@ const resolvers = {
     }
   },
   Mutation: {
-    async addMovie(_, { title, year, rated, poster, fullplot }) {
+    async addMovie(_, { title, releaseDate, rated, poster, fullplot }) {
       let collection = db.collection('movies');
       const insert = await collection.insertOne({
         title,
-        year,
+        releaseDate,
         rated,
         poster,
         fullplot
       });
       if (insert.acknowledged)
-        return { title, year, rated, poster, id: insert.insertedId };
+        return { title, releaseDate, rated, poster, id: insert.insertedId };
       return null;
     },
     async updateMovie(_, args) {
@@ -54,7 +54,7 @@ const resolvers = {
       });
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
     },
-    async signup(_, { email, password }, { models, secret }) {
+    async signup(_, { email, password }) {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       const user = await collection.insertOne({
@@ -62,10 +62,12 @@ const resolvers = {
         password: hashedPassword
       });
 
-      return { token: generateToken(user, secret, '1h') };
+      return {
+        token: generateToken(user, process.env.ACCESS_TOKEN_SECRET, '1h')
+      };
     },
     async login(_, { email, password }) {
-      let collection = db.collection('baphyUsers');
+      let collection = db.collection('users');
       const user = await collection.findOne({
         email
       });
