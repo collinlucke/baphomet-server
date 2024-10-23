@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import movies from '../server/routes/movies.js';
 import gql from 'graphql-tag';
 import { ApolloServer } from '@apollo/server';
 import { buildSubgraphSchema } from '@apollo/subgraph';
@@ -11,6 +10,7 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
+import { authenticateToken } from '../src/authenticateToken.js';
 
 const PORT = 5050;
 const app = express();
@@ -39,8 +39,13 @@ const server = new ApolloServer({
 
 await server.start();
 
-app.use('/movie', movies);
-app.use('/graphql', cors(), express.json(), expressMiddleware(server));
+app.use(
+  '/graphql',
+  cors(),
+  express.json(),
+  authenticateToken,
+  expressMiddleware(server)
+);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
