@@ -1,4 +1,4 @@
-import db from '../server/db/connection.js';
+import db from './dBConnection.js';
 import { ObjectId } from 'mongodb';
 import { generateToken } from './generateToken.js';
 import bcrypt from 'bcryptjs';
@@ -54,8 +54,9 @@ const resolvers = {
       });
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
     },
-    async signup(_, { email, password }) {
+    async signUp(_, { email, password }) {
       const saltRounds = 10;
+      const collection = db.collection('users');
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       const user = await collection.insertOne({
         email,
