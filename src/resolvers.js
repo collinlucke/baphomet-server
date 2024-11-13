@@ -2,6 +2,7 @@ import db from './dBConnection.js';
 import { ObjectId } from 'mongodb';
 import { generateToken } from './generateToken.js';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const resolvers = {
   Movie: {
@@ -21,8 +22,18 @@ const resolvers = {
         .limit(limit ? limit : 0)
         .toArray();
       return await movies;
+    },
+    async checkAuth(_, args) {
+      const token = args.token;
+      try {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        return { isValid: true };
+      } catch (error) {
+        return { isValid: false, error };
+      }
     }
   },
+
   Mutation: {
     async addMovie(_, { title, releaseDate, rated, poster, fullplot }) {
       let collection = db.collection('movies');
@@ -78,11 +89,12 @@ const resolvers = {
       }
 
       const valid = await bcrypt.compare(password, user.password);
+
       if (!valid) {
         throw new Error('Invalid password.');
       }
       return {
-        token: generateToken(user, process.env.ACCESS_TOKEN_SECRET, '1h')
+        token: generateToken(user, process.env.ACCESS_TOKEN_SECRET, '30s')
       };
     }
   }

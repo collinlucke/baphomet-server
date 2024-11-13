@@ -1,6 +1,26 @@
 # Changelog
 
-## [0.1.00] - 2024-23-09
+## [0.1.1] - 11/13/2024
+
+### Added
+
+- Added general CheckAuth query 
+
+### Changed
+
+- ## N/A
+
+### Removed
+
+- ## N/A
+
+### Fixed
+
+- ## N/A
+
+<br/>
+
+## [0.1.0] - 09/23/2024
 
 ### Added
 
