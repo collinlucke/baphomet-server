@@ -94,7 +94,7 @@ const resolvers = {
         throw new Error('Invalid password.');
       }
       return {
-        token: generateToken(user, process.env.ACCESS_TOKEN_SECRET, '30s')
+        token: generateToken(user, process.env.ACCESS_TOKEN_SECRET, '1h')
       };
     }
   }

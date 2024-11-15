@@ -4,3 +4,5 @@
 .npmrc
 
 /dist
+*testCon.js
+docker-compose.yml
