@@ -30,13 +30,11 @@ RUN echo "ATLAS_DB=${ATLAS_DB}" >> .env
 RUN echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> .env
 RUN echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> .env
 
-COPY . .
-COPY .env .
-
 RUN npm install -g pnpm typescript
 RUN pnpm install
 
-
+COPY . .
+COPY .env .
 EXPOSE 5050
 RUN pnpm run prod
 
