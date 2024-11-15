@@ -20,7 +20,7 @@ ENV NODE_ENV=${NODE_ENV}
 WORKDIR /app
 COPY package.json .
 COPY pnpm-lock.yaml .
-COPY tscongig.json .
+COPY tsconfig.json .
 COPY src ./src
 
 RUN echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> .env
