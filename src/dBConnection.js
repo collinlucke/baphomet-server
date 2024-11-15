@@ -1,6 +1,11 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import 'dotenv/config';
 
+console.log(process.env.ATLAS_DB_PASSWORD);
+console.log(process.env.ATLAS_DB_USERNAME);
+console.log(process.env.ATLAS_CLUSTER);
+console.log(process.env.ATLAS_DB);
+
 const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_DB_PASSWORD}@${process.env.ATLAS_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
