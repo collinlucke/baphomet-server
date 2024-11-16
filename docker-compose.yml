@@ -1,0 +1,17 @@
+services:
+  app:
+    image: collinlucke/baphomet-server
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5050:5050'
+    environment:
+      - ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}
+      - ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}
+      - ATLAS_CLUSTER=${ATLAS_CLUSTER}
+      - ATLAS_DB=${ATLAS_DB}
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - NODE_ENV=${NODE_ENV}
