@@ -1,5 +1,7 @@
 FROM node:latest AS build
 
+WORKDIR /app
+
 ARG ATLAS_DB_USERNAME
 ARG ATLAS_CLUSTER
 ARG ATLAS_DB
@@ -16,7 +18,6 @@ ENV ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}
 ENV ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
 ENV REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
 
-WORKDIR /app
 COPY package.json .
 COPY pnpm-lock.yaml .
 COPY tsconfig.json .
@@ -33,6 +34,5 @@ RUN npm install -g pnpm typescript
 RUN pnpm install
 
 COPY . .
-COPY .env .
 EXPOSE 5050
 CMD ["pnpm", "start"]
