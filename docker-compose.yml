@@ -1,7 +1,7 @@
 services:
   app:
     image: collinlucke/baphomet-server
-    restart: no
+    restart: "no"
     networks:
       - baphomet
     build:
