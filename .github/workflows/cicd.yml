@@ -21,12 +21,12 @@ jobs:
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
         run: |
-          echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD }" >> .env
-          echo "ATLAS_DB_USERNAME=${secrets.ATLAS_DB_USERNAME }" >> .env
-          echo "ATLAS_CLUSTER=${secrets.ATLAS_CLUSTER }" >> .env
-          echo "ATLAS_DB=${ATLAS_DB }" >> .env
-          echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET }" >> .env
-          echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET }" >> .env
+          echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> ~/.env
+          echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> ~/.env
+          echo "ATLAS_CLUSTER=${ATLAS_CLUSTER}" >> ~/.env
+          echo "ATLAS_DB=${ATLAS_DB}" >> ~/.env
+          echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> ~/.env
+          echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> ~/.env
 
       - name: Install Docker Compose
         run: |
