@@ -65,9 +65,7 @@ httpServer.listen(5050, () => {
 // Serve HTTPS on port 443
 const httpsOptions = {
     key: fs.readFileSync(path.join(__dirname, '../_.collinlucke.com_private_key.key')),
-    cert: fs.readFileSync(path.join(__dirname, '../collinlucke.com_ssl_certificate.cer')),
-    ca: [fs.readFileSync(path.join(__dirname, '../_.collinlucke.com_ssl_certificate_INTERMEDIATE.cer'))],
-    
+    cert: fs.readFileSync(path.join(__dirname, '../collinlucke.com_ssl_certificate.cer'))    
 };
 
 const httpsServer = https.createServer(httpsOptions, app);
