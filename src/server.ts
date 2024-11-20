@@ -5,48 +5,72 @@ import { ApolloServer } from '@apollo/server';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { expressMiddleware } from '@apollo/server/express4';
 import resolvers from '../src/resolvers.js';
-import { readFileSync } from 'fs';
-import {
-  ApolloServerPluginLandingPageLocalDefault,
-  ApolloServerPluginLandingPageProductionDefault
-} from '@apollo/server/plugin/landingPage/default';
+import fs from 'fs';
+import https from 'https';
+import http from 'http';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import dotenv from 'dotenv';
+import { ApolloServerPluginLandingPageLocalDefault, ApolloServerPluginLandingPageProductionDefault } from '@apollo/server/plugin/landingPage/default';
 import { authenticateToken } from '../src/authenticateToken.js';
 
-const PORT = 5050;
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const corsOptions = {
-  credentials: true
+    credentials: true
 };
-
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const typeDefs = gql(
-  readFileSync('./src/schema.graphql', {
+const typeDefs = gql(fs.readFileSync(path.join(__dirname, '../src/schema.graphql'), {
     encoding: 'utf-8'
-  })
-);
+}));
 
 const server = new ApolloServer({
-  schema: buildSubgraphSchema({ typeDefs, resolvers }),
-  introspection: process.env.NODE_ENV !== 'production',
-  plugins: [
-    process.env.NODE_ENV === 'production'
-      ? ApolloServerPluginLandingPageProductionDefault()
-      : ApolloServerPluginLandingPageLocalDefault()
-  ]
+    schema: buildSubgraphSchema({ typeDefs, resolvers }),
+    introspection: process.env.NODE_ENV !== 'production',
+    plugins: [
+        process.env.NODE_ENV === 'production'
+            ? ApolloServerPluginLandingPageProductionDefault()
+            : ApolloServerPluginLandingPageLocalDefault()
+    ]
 });
 
 await server.start();
 
-app.use(
-  '/graphql',
-  cors(),
-  express.json(),
-  authenticateToken,
-  expressMiddleware(server)
-);
+app.use('/graphql', cors(), express.json(), authenticateToken, expressMiddleware(server, {
+    context: async ({ req }) => {
+        const token = req.headers.authorization || '';
+        return { token };
+    },
+}));
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server listening on port ${PORT}`);
+// Serve static files from the frontend build directory
+app.use(express.static(path.join(__dirname, '../../usr/src/app/dist')));
+
+// Serve the index.html file for any unmatched routes (SPA)
+app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../../usr/src/app/dist', 'index.html'));
+});
+
+// Serve HTTP on port 5050
+const httpServer = http.createServer(app);
+httpServer.listen(5050, () => {
+    console.log(`🚀 HTTP server listening on port 5050`);
+});
+
+// Serve HTTPS on port 443
+const httpsOptions = {
+    key: fs.readFileSync(path.join(__dirname, '../_.collinlucke.com_private_key.key')),
+    cert: fs.readFileSync(path.join(__dirname, '../collinlucke.com_ssl_certificate.cer')),
+    ca: [fs.readFileSync(path.join(__dirname, '../_.collinlucke.com_ssl_certificate_INTERMEDIATE.cer'))],
+    
+};
+
+const httpsServer = https.createServer(httpsOptions, app);
+httpsServer.listen(443, () => {
+    console.log('Server is running on https://localhost:443');
 });

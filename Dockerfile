@@ -16,10 +16,11 @@ ENV ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}
 ENV ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
 ENV REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
 
-COPY package.json .
-COPY pnpm-lock.yaml .
-COPY tsconfig.json .
+COPY package.json pnpm-lock.yaml tsconfig.json ./
 COPY src ./src
+COPY _.collinlucke.com_private_key.key .
+COPY collinlucke.com_ssl_certificate.cer .
+COPY _.collinlucke.com_ssl_certificate_INTERMEDIATE.cer .
 
 RUN echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> .env
 RUN echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> .env
@@ -31,6 +32,6 @@ RUN echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> .env
 RUN npm install -g pnpm typescript
 RUN pnpm install
 
-COPY . .
 EXPOSE 5050
+EXPOSE 443
 CMD ["pnpm", "start"]

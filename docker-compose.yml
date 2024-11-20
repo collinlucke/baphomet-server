@@ -1,7 +1,6 @@
 services:
   app:
-    image: collinlucke/baphomet-server
-    restart: "no"
+    restart: unless-stopped
     networks:
       - baphomet
     build:
@@ -9,6 +8,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - '5050:5050'
+      - '443:443'
+    volumes:
+      - ./src:/usr/src/app/src
+      - ../baphomet-ui/dist:/usr/src/app/dist
     environment:
       - ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}
       - ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}
@@ -19,4 +22,4 @@ services:
 
 networks:
   baphomet:
-    driver: bridge
+    external: true
