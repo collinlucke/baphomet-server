@@ -69,9 +69,9 @@ const readCert = (envVar, filePath) => {
 };
   
 const httpsOptions = { 
-  key: readCert('IONOS_SSL_PRIVATE_KEY', '../IONOS_SSL_PRIVATE_KEY.key'),
-  cert: readCert('IONOS_SSL_CERT', '../IONOS_SSL_CERT.cer'),
-  ca: readCert('IONOS_SSL_CERT_INTERMEDIATE', '../IONOS_SSL_CERT_INTERMEDIATE.cer')
+  key: readCert('SSL_PRIVATE_KEY', '../SSL_PRIVATE_KEY.key'),
+  cert: readCert('SSL_CERT', '../SSL_CERT.cer'),
+  ca: readCert('SSL_CERT_INTERMEDIATE', '../SSL_CERT_INTERMEDIATE.cer')
 };
 
 const httpsServer = https.createServer(httpsOptions, app);
