@@ -62,10 +62,16 @@ httpServer.listen(5050, () => {
     console.log(`🚀 HTTP server listening on port 5050`);
 });
 
-// Serve HTTPS on port 443
-const httpsOptions = {
-    key: fs.readFileSync(path.join(__dirname, '../_.collinlucke.com_private_key.key')),
-    cert: fs.readFileSync(path.join(__dirname, '../collinlucke.com_ssl_certificate.cer'))    
+const readCert = (envVar, filePath) => {
+  if (process.env[envVar]) {
+    return process.env[envVar].replace(/\\n/g, '\n'); 
+  } return fs.readFileSync(path.join(__dirname, filePath), 'utf8');
+};
+  
+const httpsOptions = { 
+  key: readCert('SSL_PRIVATE_KEY', '../SSL_PRIVATE_KEY.key'),
+  cert: readCert('SSL_CERT', '../SSL_CERT.cer'),
+  ca: readCert('SSL_CERT_INTERMEDIATE', '../SSL_CERT_INTERMEDIATE.cer')
 };
 
 const httpsServer = https.createServer(httpsOptions, app);
