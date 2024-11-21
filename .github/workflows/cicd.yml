@@ -1,3 +1,84 @@
+# name: Deploy Baphomet Server
+
+# on:
+#   push:
+#     branches:
+#       - master
+
+# jobs:
+#   build:
+#     runs-on: windows-latest
+#     steps:
+#       - name: Checkout Source
+#         uses: actions/checkout@v4
+
+#       - name: Set Environment Variables
+#         shell: pwsh
+        # env:
+        #   ATLAS_DB_PASSWORD: ${{ secrets.ATLAS_DB_PASSWORD }}
+        #   ATLAS_DB_USERNAME: ${{ secrets.ATLAS_DB_USERNAME }}
+        #   ATLAS_CLUSTER: ${{ secrets.ATLAS_CLUSTER }}
+        #   ATLAS_DB: ${{ secrets.ATLAS_DB }}
+        #   ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+        #   REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+        #   SSL_PRIVATE_KEY: ${{ secrets.IONOS_SSL_PRIVATE_KEY }}
+        #   SSL_CERT: ${{ secrets.IONOS_SSL_CERT }}
+        #   SSL_CERT_INTERMEDIATE: ${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}
+        # run: |
+        #   echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> ~/.env
+        #   echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> ~/.env
+        #   echo "ATLAS_CLUSTER=${ATLAS_CLUSTER}" >> ~/.env
+        #   echo "ATLAS_DB=${ATLAS_DB}" >> ~/.env
+        #   echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> ~/.env
+        #   echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> ~/.env
+        #   echo "SSL_CERT= ${{ secrets.IONOS_SSL_CERT }}" >> ~/.env
+        #   echo "SSL_PRIVATE_KEY= ${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> ~/.env
+        #   echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}" >> ~/.env
+
+
+      # - name: Install Docker Compose
+      #   run: |
+      #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      #     chmod +x /usr/local/bin/docker-compose
+      #     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+  #     - name: Install Docker Compose
+  #       shell: pwsh
+  #       run: |
+  #         $installPath = "${{ runner.temp }}/docker-compose.exe"
+  #         Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+  #         [System.IO.File]::Move($installPath, "${{ env:ProgramFiles }}\Docker\Docker\resources\bin\docker-compose.exe")
+
+  #     - name: Login to Docker Hub
+  #       shell: pwsh
+  #       run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
+
+  #     - name: Build and Push Docker Images
+  #       shell: pwsh
+  #       run: |
+  #         docker-compose -f docker-compose.yml build
+  #         docker-compose -f docker-compose.yml push
+
+  # deploy:
+  #   needs: build
+  #   runs-on: self-hosted
+
+  #   steps:
+  #     - name: Checkout Source
+  #       uses: actions/checkout@v4
+
+  #     - name: Pull Image from Docker Hub
+  #       shell: pwsh
+  #       run: docker-compose -f docker-compose.yml pull
+
+  #     - name: Delete Old Container
+  #       shell: pwsh
+  #       run: docker rm -f baphomet-server-container
+
+  #     - name: Run Docker Container
+  #       shell: pwsh
+        # run: docker-compose -f docker-compose.yml up -d
+
 name: Deploy Baphomet Server
 
 on:
@@ -14,33 +95,16 @@ jobs:
 
       - name: Set Environment Variables
         shell: pwsh
-        # env:
-        #   ATLAS_DB_PASSWORD: ${{ secrets.ATLAS_DB_PASSWORD }}
-        #   ATLAS_DB_USERNAME: ${{ secrets.ATLAS_DB_USERNAME }}
-        #   ATLAS_CLUSTER: ${{ secrets.ATLAS_CLUSTER }}
-        #   ATLAS_DB: ${{ secrets.ATLAS_DB }}
-        #   ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-        #   REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-        #   SSL_PRIVATE_KEY: ${{ secrets.IONOS_SSL_PRIVATE_KEY }}
-        #   SSL_CERT: ${{ secrets.IONOS_SSL_CERT }}
-        #   SSL_CERT_INTERMEDIATE: ${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}
         run: |
-          echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> ~/.env
-          echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> ~/.env
-          echo "ATLAS_CLUSTER=${ATLAS_CLUSTER}" >> ~/.env
-          echo "ATLAS_DB=${ATLAS_DB}" >> ~/.env
-          echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> ~/.env
-          echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> ~/.env
-          echo "SSL_CERT= ${{ secrets.IONOS_SSL_CERT }}" >> ~/.env
-          echo "SSL_PRIVATE_KEY= ${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> ~/.env
-          echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}" >> ~/.env
-
-
-      # - name: Install Docker Compose
-      #   run: |
-      #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      #     chmod +x /usr/local/bin/docker-compose
-      #     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+          echo "ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}" >> $env:GITHUB_ENV
+          echo "ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}" >> $env:GITHUB_ENV
+          echo "ATLAS_CLUSTER=${{ secrets.ATLAS_CLUSTER }}" >> $env:GITHUB_ENV
+          echo "ATLAS_DB=${{ secrets.ATLAS_DB }}" >> $env:GITHUB_ENV
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> $env:GITHUB_ENV
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $env:GITHUB_ENV
+          echo "SSL_CERT=${{ secrets.IONOS_SSL_CERT }}" >> $env:GITHUB_ENV
+          echo "SSL_PRIVATE_KEY=${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> $env:GITHUB_ENV
+          echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE }}" >> $env:GITHUB_ENV
 
       - name: Install Docker Compose
         shell: pwsh
@@ -51,7 +115,7 @@ jobs:
 
       - name: Login to Docker Hub
         shell: pwsh
-        run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker Images
         shell: pwsh
@@ -61,7 +125,7 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: self-hosted
+    runs-on: windows-latest
 
     steps:
       - name: Checkout Source
