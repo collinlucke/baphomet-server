@@ -1,14 +1,21 @@
 services:
   app:
-    image: collinlucke/baphomet-server
-    restart: "no"
+    restart: unless-stopped
     networks:
       - baphomet
     build:
       context: .
       dockerfile: Dockerfile
+      args: 
+        - SSL_KEY_PATH=${SSL_KEY_PATH}
+        - SSL_CERT_PATH=${SSL_CERT_PATH}
+        - SSL_CA_PATH=${SSL_CA_PATH}
     ports:
       - '5050:5050'
+      - '443:443'
+    volumes:
+      - ./src:/usr/src/app/src
+      - ../baphomet-ui/dist:/usr/src/app/dist
     environment:
       - ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}
       - ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}
@@ -16,7 +23,10 @@ services:
       - ATLAS_DB=${ATLAS_DB}
       - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
       - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - SSL_CERT
+      - SSL_CERT_INTERMEDIATE
+      - SSL_PRIVATE_KEYPRIVATE
 
 networks:
   baphomet:
-    driver: bridge
+    external: true

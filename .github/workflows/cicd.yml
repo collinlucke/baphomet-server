@@ -7,40 +7,44 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Use your self-hosted runner
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
 
       - name: Set Environment Variables
-        env:
-          ATLAS_DB_PASSWORD: ${{ secrets.ATLAS_DB_PASSWORD }}
-          ATLAS_DB_USERNAME: ${{ secrets.ATLAS_DB_USERNAME }}
-          ATLAS_CLUSTER: ${{ secrets.ATLAS_CLUSTER }}
-          ATLAS_DB: ${{ secrets.ATLAS_DB }}
-          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+        shell: powershell
         run: |
-          echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> ~/.env
-          echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> ~/.env
-          echo "ATLAS_CLUSTER=${ATLAS_CLUSTER}" >> ~/.env
-          echo "ATLAS_DB=${ATLAS_DB}" >> ~/.env
-          echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> ~/.env
-          echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> ~/.env
+          echo "ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}" >> ~/.env
+          echo "ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}" >> ~/.env
+          echo "ATLAS_CLUSTER=${{ secrets.ATLAS_CLUSTER }}" >> ~/.env
+          echo "ATLAS_DB=${{ secrets.ATLAS_DB }}" >> ~/.env
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> ~/.env
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> ~/.env
+          echo "SSL_CERT=${{ secrets.IONOS_SSL_CERT }}" >> ~/.env
+          echo "SSL_PRIVATE_KEY=${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> ~/.env
+          echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE }}" >> ~/.env
 
-      - name: Install Docker Compose
+      - name: Install Docker Compose (if needed)
+        shell: powershell
         run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+            $installPath = "${{ runner.temp }}/docker-compose.exe"
+            Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
+          }
 
       - name: Login to Docker Hub
-        run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
+        shell: powershell
+        run: Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -Verb RunAs
 
-      - name: Build and Push Docker Images
-        run: |
-          docker-compose -f docker-compose.yml build
-          docker-compose -f docker-compose.yml push
+      - name: Build Docker Images
+        shell: powershell
+        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml build" -Verb RunAs
+
+      - name: Push Docker Images
+        shell: powershell
+        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml push" -Verb RunAs
 
   deploy:
     needs: build
@@ -50,13 +54,23 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
+      - name: Install Docker Compose (if needed)
+        shell: powershell
+        run: |
+          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+            $installPath = "${{ runner.temp }}/docker-compose.exe"
+            Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
+          }
 
       - name: Pull Image from Docker Hub
-        run: docker-compose -f docker-compose.yml pull
+        shell: powershell
+        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml pull" -Verb RunAs
 
       - name: Delete Old Container
-        run: docker rm -f baphomet-server-container
+        shell: powershell
+        run: Start-Process -FilePath "docker" -ArgumentList "rm -f baphomet-server-container" -Verb RunAs
 
       - name: Run Docker Container
-        run: docker-compose -f docker-compose.yml up -d
- 
+        shell: powershell
+        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml up -d" -Verb RunAs

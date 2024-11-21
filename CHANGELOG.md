@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.2.0] - 11/19/2024
+
+### Added
+
+- ## N/A
+
+### Changed
+
+- Changed things to do the things to run the things
+
+### Removed
+
+- ## N/A
+
+### Fixed
+
+- ## N/A
+
+<br/>
+
 ## [0.1.1] - 11/13/2024
 
 ### Added
