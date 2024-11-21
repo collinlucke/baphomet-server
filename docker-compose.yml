@@ -7,9 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args: 
-        - SSL_KEY_PATH=./SSL_PRIVATE_KEY.key
-        - SSL_CERT_PATH=./SSL_CERT.cer
-        - SSL_CA_PATH=./SSL_CERT_INTERMEDIATE.cer
+        - SSL_KEY_PATH=${SSL_KEY_PATH}
+        - SSL_CERT_PATH=${SSL_CERT_PATH}
+        - SSL_CA_PATH=${SSL_CA_PATH}
     ports:
       - '5050:5050'
       - '443:443'
@@ -23,9 +23,9 @@ services:
       - ATLAS_DB=${ATLAS_DB}
       - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
       - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
-      - SSL_CERT_PATH
-      - SSL_CA_PATH
-      - SSL_KEY_PATH
+      - SSL_CERT
+      - SSL_CERT_INTERMEDIATE
+      - SSL_PRIVATE_KEYPRIVATE
 
 networks:
   baphomet:
