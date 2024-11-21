@@ -30,9 +30,9 @@ jobs:
           echo "ATLAS_DB=${ATLAS_DB}" >> ~/.env
           echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> ~/.env
           echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> ~/.env
-          echo "SSL_CERT=${SSL_CERT}" >> ~/.env
-          echo "SSL_PRIVATE_KEY=${SSL_PRIVATE_KEY}" >> ~/.env
-          echo "SSL_CERT_INTERMEDIATE=${SSL_CERT_INTERMEDIATE}" >> ~/.env
+          echo "SSL_CERT= ${{ secrets.IONOS_SSL_CERT }}" >> ~/.env
+          echo "SSL_PRIVATE_KEY= ${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> ~/.env
+          echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}" >> ~/.env
 
       - name: Install Docker Compose
         run: |
