@@ -18,6 +18,19 @@ import {
 import { authenticateToken } from '../src/authenticateToken.js';
 
 console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
 
 dotenv.config();
 
