@@ -17,6 +17,8 @@ import {
 } from '@apollo/server/plugin/landingPage/default';
 import { authenticateToken } from '../src/authenticateToken.js';
 
+console.log('testing.. 1 2');
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
