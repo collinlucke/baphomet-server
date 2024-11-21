@@ -111,7 +111,7 @@ jobs:
         run: |
           $installPath = "${{ runner.temp }}/docker-compose.exe"
           Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
-          [System.IO.File]::Move($installPath, "${{ env:ProgramFiles }}\Docker\Docker\resources\bin\docker-compose.exe")
+          echo $installPath >> $env:GITHUB_PATH
 
       - name: Login to Docker Hub
         shell: pwsh
@@ -142,3 +142,4 @@ jobs:
       - name: Run Docker Container
         shell: pwsh
         run: docker-compose -f docker-compose.yml up -d
+
