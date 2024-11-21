@@ -25,15 +25,15 @@
         #   SSL_CERT: ${{ secrets.IONOS_SSL_CERT }}
         #   SSL_CERT_INTERMEDIATE: ${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}
         # run: |
-        #   echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> $env:GITHUB_ENV
-        #   echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> $env:GITHUB_ENV
-        #   echo "ATLAS_CLUSTER=${ATLAS_CLUSTER}" >> $env:GITHUB_ENV
-        #   echo "ATLAS_DB=${ATLAS_DB}" >> $env:GITHUB_ENV
-        #   echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> $env:GITHUB_ENV
-        #   echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> $env:GITHUB_ENV
-        #   echo "SSL_CERT= ${{ secrets.IONOS_SSL_CERT }}" >> $env:GITHUB_ENV
-        #   echo "SSL_PRIVATE_KEY= ${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> $env:GITHUB_ENV
-        #   echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}" >> $env:GITHUB_ENV
+        #   echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> ~/.env
+        #   echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> ~/.env
+        #   echo "ATLAS_CLUSTER=${ATLAS_CLUSTER}" >> ~/.env
+        #   echo "ATLAS_DB=${ATLAS_DB}" >> ~/.env
+        #   echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> ~/.env
+        #   echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> ~/.env
+        #   echo "SSL_CERT= ${{ secrets.IONOS_SSL_CERT }}" >> ~/.env
+        #   echo "SSL_PRIVATE_KEY= ${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> ~/.env
+        #   echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE}}" >> ~/.env
 
 
       # - name: Install Docker Compose
@@ -96,15 +96,15 @@ jobs:
       - name: Set Environment Variables
         shell: powershell
         run: |
-          echo "ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}" >> $env:GITHUB_ENV
-          echo "ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}" >> $env:GITHUB_ENV
-          echo "ATLAS_CLUSTER=${{ secrets.ATLAS_CLUSTER }}" >> $env:GITHUB_ENV
-          echo "ATLAS_DB=${{ secrets.ATLAS_DB }}" >> $env:GITHUB_ENV
-          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> $env:GITHUB_ENV
-          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $env:GITHUB_ENV
-          echo "SSL_CERT=${{ secrets.IONOS_SSL_CERT }}" >> $env:GITHUB_ENV
-          echo "SSL_PRIVATE_KEY=${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> $env:GITHUB_ENV
-          echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE }}" >> $env:GITHUB_ENV
+          echo "ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}" >> ~/.env
+          echo "ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}" >> ~/.env
+          echo "ATLAS_CLUSTER=${{ secrets.ATLAS_CLUSTER }}" >> ~/.env
+          echo "ATLAS_DB=${{ secrets.ATLAS_DB }}" >> ~/.env
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> ~/.env
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> ~/.env
+          echo "SSL_CERT=${{ secrets.IONOS_SSL_CERT }}" >> ~/.env
+          echo "SSL_PRIVATE_KEY=${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> ~/.env
+          echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE }}" >> ~/.env
 
       - name: Install Docker Compose (if needed)
         shell: powershell
