@@ -107,11 +107,9 @@ jobs:
 
       - name: Install Docker Compose
         run: |
-          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
-            $installPath = "${{ runner.temp }}/docker-compose.exe"
-            Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
-            Move-Item -Path $installPath -Destination "C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe"
-          }
+          $installPath = "${{ runner.temp }}/docker-compose.exe"
+          Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+          Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
 
       - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
@@ -132,11 +130,9 @@ jobs:
 
       - name: Install Docker Compose (if needed)
         run: |
-          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
-            $installPath = "${{ runner.temp }}/docker-compose.exe"
-            Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
-            Move-Item -Path $installPath -Destination "C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe"
-          }
+          $installPath = "${{ runner.temp }}/docker-compose.exe"
+          Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+          Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs         
 
       - name: Pull Image from Docker Hub
         run: docker compose -f docker-compose.yml pull
