@@ -94,6 +94,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set Environment Variables
+        shell: powershell
         run: |
           echo "ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}" >> ~/.env
           echo "ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}" >> ~/.env
@@ -106,15 +107,20 @@ jobs:
           echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE }}" >> ~/.env
 
       - name: Install Docker Compose
+        shell: powershell
         run: |
+         if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
           $installPath = "${{ runner.temp }}/docker-compose.exe"
           Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
-          Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
+          Move-Item -Path $installPath -Destination "C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe"
+         }
 
       - name: Login to Docker Hub
+        shell: powershell
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker Images
+        shell: powershell
         run: |
           docker compose -f docker-compose.yml build
           docker compose -f docker-compose.yml push
@@ -129,17 +135,22 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Docker Compose (if needed)
+        shell: powershell
         run: |
-          $installPath = "${{ runner.temp }}/docker-compose.exe"
-          Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
-          Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs         
-
+          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+            $installPath = "${{ runner.temp }}/docker-compose.exe"
+            Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+            Move-Item -Path $installPath -Destination "C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe"
+          }
       - name: Pull Image from Docker Hub
+        shell: powershell
         run: docker compose -f docker-compose.yml pull
 
       - name: Delete Old Container
+        shell: powershell
         run: docker rm -f baphomet-server-container
 
       - name: Run Docker Container
+        shell: powershell
         run: docker compose -f docker-compose.yml up -d
 
