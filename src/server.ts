@@ -11,8 +11,19 @@ import http from 'http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import dotenv from 'dotenv';
-import { ApolloServerPluginLandingPageLocalDefault, ApolloServerPluginLandingPageProductionDefault } from '@apollo/server/plugin/landingPage/default';
+import {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault
+} from '@apollo/server/plugin/landingPage/default';
 import { authenticateToken } from '../src/authenticateToken.js';
+
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
+console.log('testing.. 1 2');
 
 dotenv.config();
 
@@ -26,7 +37,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const typeDefs = gql(fs.readFileSync(path.join(__dirname, '../src/schema.graphql'), {
+const typeDefs = gql(
+  fs.readFileSync(path.join(__dirname, '../src/schema.graphql'), {
     encoding: 'utf-8'
 }));
 
@@ -42,33 +54,41 @@ const server = new ApolloServer({
 
 await server.start();
 
-app.use('/graphql', cors(), express.json(), authenticateToken, expressMiddleware(server, {
+app.use(
+  '/graphql',
+  cors(),
+  express.json(),
+  authenticateToken,
+  expressMiddleware(server, {
     context: async ({ req }) => {
-        const token = req.headers.authorization || '';
-        return { token };
-    },
-}));
+      const token = req.headers.authorization || '';
+      return { token };
+    }
+  })
+);
 
 // Serve static files from the frontend build directory
 app.use(express.static(path.join(__dirname, '../../usr/src/app/dist')));
 
 // Serve the index.html file for any unmatched routes (SPA)
-app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../../usr/src/app/dist', 'index.html'));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../usr/src/app/dist', 'index.html'));
 });
 
 // Serve HTTP on port 5050
 const httpServer = http.createServer(app);
 httpServer.listen(5050, () => {
-    console.log(`🚀 HTTP server listening on port 5050`);
+  console.log(`🚀 HTTP server listening on port 5050`);
 });
 
 const readCert = (envVar, filePath) => {
   if (process.env[envVar]) {
-    return process.env[envVar].replace(/\\n/g, '\n'); 
-  } return fs.readFileSync(path.join(__dirname, filePath), 'utf8');
+    return process.env[envVar].replace(/\\n/g, '\n');
+  }
+  return fs.readFileSync(path.join(__dirname, filePath), 'utf8');
 };
-  
-const httpsOptions = { 
+
+const httpsOptions = {
   key: readCert('SSL_PRIVATE_KEY', '../keyfile.key'),
   cert: readCert('SSL_CERT', '../certfile.cer'),
   ca: [readCert('SSL_CERT_INTERMEDIATE', '../intermediate.cer')]
@@ -76,5 +96,5 @@ const httpsOptions = {
 
 const httpsServer = https.createServer(httpsOptions, app);
 httpsServer.listen(443, () => {
-    console.log('Server is running on https://localhost:443');
+  console.log('Server is running on https://localhost:443');
 });
