@@ -21,9 +21,9 @@ ENV REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
 
 COPY package.json pnpm-lock.yaml tsconfig.json ./
 COPY src ./src
-COPY ${SSL_KEY_PATH} ./keyfile.key
-COPY ${SSL_CERT_PATH} ./certfile.cer
-COPY ${SSL_CA_PATH} ./intermediate.cer
+COPY SSL_PRIVATE_KEY.key ./keyfile.key
+COPY SSL_CERT.cer ./certfile.cer
+COPY SSL_CERT_INTERMEDIATE.cer ./intermediate.cer
 
 RUN echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> .env
 RUN echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> .env
