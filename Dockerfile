@@ -21,9 +21,9 @@ ENV REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
 
 COPY package.json pnpm-lock.yaml tsconfig.json ./
 COPY src ./src
-COPY SSL_PRIVATE_KEY.key ./keyfile.key
-COPY SSL_CERT.cer ./certfile.cer
-COPY SSL_CERT_INTERMEDIATE.cer ./intermediate.cer
+COPY ${SSL_KEY_PATH} ./keyfile.key
+COPY ${SSL_CERT_PATH} ./certfile.cer
+COPY ${SSL_CA_PATH} ./intermediate.cer
 
 RUN echo "ATLAS_DB_PASSWORD=${ATLAS_DB_PASSWORD}" >> .env
 RUN echo "ATLAS_DB_USERNAME=${ATLAS_DB_USERNAME}" >> .env
@@ -31,9 +31,6 @@ RUN echo "ATLAS_CLUSTER=${ATLAS_CLUSTER}" >> .env
 RUN echo "ATLAS_DB=${ATLAS_DB}" >> .env
 RUN echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> .env
 RUN echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}" >> .env
-# RUN echo "SSL_PRIVATE_KEY=${SSL_PRIVATE_KEY}" >> .env
-# RUN echo "SSL_CERT=${SSL_CERT}" >> .env
-# RUN echo "SSL_CERT_INTERMEDIATE=${SSL_CERT_INTERMEDIATE}" >> .env
 
 RUN npm install -g pnpm typescript
 RUN pnpm install

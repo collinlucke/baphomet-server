@@ -71,7 +71,7 @@ const readCert = (envVar, filePath) => {
 const httpsOptions = { 
   key: readCert('SSL_PRIVATE_KEY', '../keyfile.key'),
   cert: readCert('SSL_CERT', '../certfile.cer'),
-  ca: readCert('SSL_CERT_INTERMEDIATE', '../intermediate.cer')
+  ca: [readCert('SSL_CERT_INTERMEDIATE', '../intermediate.cer')]
 };
 
 const httpsServer = https.createServer(httpsOptions, app);
