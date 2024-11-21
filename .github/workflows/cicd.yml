@@ -107,10 +107,11 @@ jobs:
 
       - name: Install Docker Compose
         run: |
-          if ! docker compose -v > /dev/null 2>&1; then
-            curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
-          fi
+          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+            $installPath = "${{ runner.temp }}/docker-compose.exe"
+            Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+            Move-Item -Path $installPath -Destination "C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe"
+          }
 
       - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
@@ -131,10 +132,11 @@ jobs:
 
       - name: Install Docker Compose (if needed)
         run: |
-          if ! docker compose -v > /dev/null 2>&1; then
-            curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
-          fi
+          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+            $installPath = "${{ runner.temp }}/docker-compose.exe"
+            Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
+            Move-Item -Path $installPath -Destination "C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe"
+          }
 
       - name: Pull Image from Docker Hub
         run: docker compose -f docker-compose.yml pull
