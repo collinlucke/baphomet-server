@@ -46,8 +46,9 @@ jobs:
         shell: powershell
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./verify-docker-login.ps1" -Verb RunAs
 
-      - name: Build Docker Images
-        run: docker-compose -f docker-compose.yml build -Verb RunAs
+      - name: Build Docker Images w/ Elevated Privileges
+        shell: powershell
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./build-docker-image.ps1"
 
       - name: Tag Docker Image with Elevated Privileges
         shell: powershell
