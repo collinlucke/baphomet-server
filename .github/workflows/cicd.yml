@@ -52,7 +52,7 @@ jobs:
       - name: Tag Docker Image with Elevated Privileges
         shell: powershell
         run: |
-          Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
+          Start-Process -FilePath "docker" -ArgumentList "tag your-image-name:latest your-docker-username/your-image-name:latest" -Verb RunAs
 
       - name: Push Docker Images
         run: docker-compose -f docker-compose.yml push
