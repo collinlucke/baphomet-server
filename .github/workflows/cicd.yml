@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted  # Use your self-hosted runner
+    runs-on: self-hosted
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -21,9 +21,9 @@ jobs:
           echo "ATLAS_DB=${{ secrets.ATLAS_DB }}" >> ~/.env
           echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> ~/.env
           echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> ~/.env
-          echo "SSL_CERT=${{ secrets.IONOS_SSL_CERT }}" >> ~/.env
-          echo "SSL_PRIVATE_KEY=${{ secrets.IONOS_SSL_PRIVATE_KEY }}" >> ~/.env
-          echo "SSL_CERT_INTERMEDIATE=${{ secrets.IONOS_SSL_CERT_INTERMEDIATE }}" >> ~/.env
+          echo "SSL_CERT=${{ secrets.SSL_CERT }}" >> ~/.env
+          echo "SSL_PRIVATE_KEY=${{ secrets.SSL_PRIVATE_KEY }}" >> ~/.env
+          echo "SSL_CERT_INTERMEDIATE=${{ secrets.SSL_CERT_INTERMEDIATE }}" >> ~/.env
 
       - name: Install Docker Compose (if needed)
         shell: powershell
@@ -31,8 +31,20 @@ jobs:
           if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
             $installPath = "${{ runner.temp }}/docker-compose.exe"
             Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
-            Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-Command
+            Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
+            Write-Output "Docker Compose Installed"
+          } else {
+            Write-Output "Docker Compose already installed"
           }
+
+      - name: Debug Docker Hub Login
+        shell: powershell
+        run: |
+          Start-Process -FilePath "docker" -ArgumentList "logout" -NoNewWindow
+          Write-Output "Logging into Docker Hub..."
+          Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -NoNewWindow
+          Write-Output "Docker login completed."
 
       - name: Login to Docker Hub
         shell: powershell
@@ -60,7 +72,11 @@ jobs:
           if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
             $installPath = "${{ runner.temp }}/docker-compose.exe"
             Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
-            Start-Process -FilePath "powershell.exe" -ArgumentList "-Command Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-Command
+            Move-Item -Path $installPath -Destination 'C:\Program Files\Docker\Docker\resources\bin\docker-compose.exe'" -Verb RunAs
+            Write-Output "Docker Compose Installed"
+          } else {
+            Write-Output "Docker Compose already installed"
           }
 
       - name: Pull Image from Docker Hub

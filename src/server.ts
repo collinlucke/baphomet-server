@@ -17,14 +17,6 @@ import {
 } from '@apollo/server/plugin/landingPage/default';
 import { authenticateToken } from '../src/authenticateToken.js';
 
-console.log('testing.. 1 2');
-console.log('testing.. 1 2');
-console.log('testing.. 1 2');
-console.log('testing.. 1 2');
-console.log('testing.. 1 2');
-console.log('testing.. 1 2');
-console.log('testing.. 1 2');
-
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -82,6 +74,7 @@ httpServer.listen(5050, () => {
   console.log(`🚀 HTTP server listening on port 5050`);
 });
 
+// Serve HTTPS on port 443
 const readCert = (envVar, filePath) => {
   if (process.env[envVar]) {
     return process.env[envVar].replace(/\\n/g, '\n');
