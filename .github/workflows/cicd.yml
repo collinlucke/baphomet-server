@@ -38,25 +38,24 @@ jobs:
             Write-Output "Docker Compose already installed"
           }
 
-      - name: Debug Docker Hub Login
-        shell: powershell
+      - name: Docker Login
         run: |
-          Start-Process -FilePath "docker" -ArgumentList "logout" -NoNewWindow
-          Write-Output "Logging into Docker Hub..."
-          Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -NoNewWindow
-          Write-Output "Docker login completed."
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Login to Docker Hub
+      - name: Verify Docker Hub Login
         shell: powershell
-        run: Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./verify-docker-login.ps1" -Verb RunAs
 
       - name: Build Docker Images
+        run: docker-compose -f docker-compose.yml build
+
+      - name: Tag Docker Image with Elevated Privileges
         shell: powershell
-        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml build" -Verb RunAs
+        run: |
+          Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
 
       - name: Push Docker Images
-        shell: powershell
-        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml push" -Verb RunAs
+        run: docker-compose -f docker-compose.yml push
 
   deploy:
     needs: build
@@ -80,13 +79,10 @@ jobs:
           }
 
       - name: Pull Image from Docker Hub
-        shell: powershell
-        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml pull" -Verb RunAs
+        run: docker-compose -f docker-compose.yml pull
 
       - name: Delete Old Container
-        shell: powershell
-        run: Start-Process -FilePath "docker" -ArgumentList "rm -f baphomet-server-container" -Verb RunAs
+        run: docker rm -f baphomet-server-container
 
       - name: Run Docker Container
-        shell: powershell
-        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml up -d" -Verb RunAs
+        run: docker-compose -f docker-compose.yml up -d
