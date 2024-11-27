@@ -46,9 +46,9 @@ jobs:
           Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -NoNewWindow
           Write-Output "Docker login completed."
 
-      - name: Login to Docker Hub
-        shell: powershell
-        run: Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -Verb RunAs
+      # - name: Login to Docker Hub
+      #   shell: powershell
+      #   run: Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -Verb RunAs
 
       - name: Docker Login
         run: | 
