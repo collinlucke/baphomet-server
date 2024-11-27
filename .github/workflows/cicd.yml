@@ -37,17 +37,18 @@ jobs:
         shell: powershell
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./verify-docker-login.ps1" -Verb RunAs
 
-      - name: Build Docker Images w/ Elevated Privileges
+      - name: Build Docker Images with Elevated Privileges
         shell: powershell
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./build-docker-image.ps1"
 
       - name: Tag Docker Image with Elevated Privileges
         shell: powershell
         run: |
-          Start-Process -FilePath "docker" -ArgumentList "tag your-image-name:latest your-docker-username/your-image-name:latest" -Verb RunAs
+          Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
 
-      - name: Push Docker Images
-        run: docker-compose -f docker-compose.yml push
+      - name: Push Docker Images with Elevated Privileges
+        shell: powershell
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs
 
   deploy:
     needs: build
