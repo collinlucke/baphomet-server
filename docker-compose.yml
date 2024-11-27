@@ -29,4 +29,4 @@ services:
 
 networks:
   baphomet:
-    external: true
+    driver: bridge

@@ -7,5 +7,4 @@
 *testCon.js
 *.cer
 *.key
-
-set-env.sh
+*set-env.sh
