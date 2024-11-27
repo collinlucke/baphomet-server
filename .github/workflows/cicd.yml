@@ -48,7 +48,7 @@ jobs:
 
       - name: Push Docker Images with Elevated Privileges
         shell: powershell
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push --verbose" -Verb RunAs
 
   deploy:
     needs: build
@@ -72,7 +72,7 @@ jobs:
           }
 
       - name: Pull Image from Docker Hub
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml pull --verbose" -Verb RunAs
 
       - name: Delete Old Container
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml rm" -Verb RunAs

@@ -1,6 +1,7 @@
 services:
   app:
     restart: unless-stopped
+    image: collinlucke/baphomet-server:latest
     networks:
       - baphomet
     build:
