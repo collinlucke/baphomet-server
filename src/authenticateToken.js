@@ -12,11 +12,7 @@ export const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token && req.body.operationName) {
-      return next();
-    } else if (!token && !req.body.operationName) {
-      return res.sendStatus(401); // Unauthorized if no token
-    }
+    if (!token) return res.sendStatus(401); // Unauthorized if no token
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
       if (err) {
