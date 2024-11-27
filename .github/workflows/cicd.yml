@@ -38,13 +38,13 @@ jobs:
             Write-Output "Docker Compose already installed"
           }
 
-      - name: Debug Docker Hub Login
-        shell: powershell
-        run: |
-          Start-Process -FilePath "docker" -ArgumentList "logout" -NoNewWindow
-          Write-Output "Logging into Docker Hub..."
-          Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -NoNewWindow
-          Write-Output "Docker login completed."
+      # - name: Debug Docker Hub Login
+      #   shell: powershell
+      #   run: |
+      #     Start-Process -FilePath "docker" -ArgumentList "logout" -NoNewWindow
+      #     Write-Output "Logging into Docker Hub..."
+      #     Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -NoNewWindow
+      #     Write-Output "Docker login completed."
 
       # - name: Login to Docker Hub
       #   shell: powershell
