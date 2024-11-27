@@ -72,7 +72,7 @@ jobs:
           }
 
       - name: Pull Image from Docker Hub
-        run: docker-compose -f docker-compose.yml pull
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs
 
       - name: Delete Old Container
         run: docker rm -f baphomet-server-container
