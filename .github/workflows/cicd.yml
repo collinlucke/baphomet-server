@@ -50,13 +50,35 @@ jobs:
         shell: powershell
         run: Start-Process -FilePath "docker" -ArgumentList "login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" -Verb RunAs
 
+      - name: Verify Docker Hub Login
+        shell: powershell
+        run: |
+          if (-not (docker info | Select-String 'Username: ${{ secrets.DOCKER_USERNAME }}')) {
+            Write-Output "Docker login verification failed."
+            exit 1
+          } else {
+            Write-Output "Docker login verified."
+          }
+
       - name: Build Docker Images
         shell: powershell
         run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml build" -Verb RunAs
 
-      - name: Push Docker Images
+      - name: Tag Docker Image
         shell: powershell
-        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml push" -Verb RunAs
+        run: docker tag baphomet-server:latest collinlucke/baphomet-server:latest
+
+      - name: Push Docker Images with Logging
+        shell: powershell
+        run: |
+          $process = Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml push" -NoNewWindow -PassThru
+          $process.WaitForExit()
+          if ($process.ExitCode -ne 0) {
+            Write-Output "Docker push failed with exit code $($process.ExitCode)"
+            exit $process.ExitCode 
+          } else {
+            Write-Output "Docker push completed successfully."
+          }
 
   deploy:
     needs: build
