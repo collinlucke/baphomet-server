@@ -62,7 +62,7 @@ jobs:
 
       - name: Build Docker Images
         shell: powershell
-        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml build" -Verb RunAs
+        run: Start-Process -FilePath "docker-compose" -ArgumentList "-f docker-compose.yml build --no-cache" -Verb RunAs
 
       - name: Tag Docker Image
         shell: powershell
