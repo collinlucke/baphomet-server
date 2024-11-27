@@ -75,7 +75,8 @@ jobs:
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs
 
       - name: Delete Old Container
-        run: docker rm -f baphomet-server-container
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml rm" -Verb RunAs
+        
 
       - name: Run Docker Container
-        run: docker-compose -f docker-compose.yml up -d
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml up -d" -Verb RunAs
