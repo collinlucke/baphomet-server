@@ -70,7 +70,8 @@ jobs:
 
       - name: Tag Docker Image
         shell: powershell
-        run: docker tag baphomet-server:latest collinlucke/baphomet-server:latest
+        run: |
+          Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
 
       - name: Push Docker Images with Logging
         shell: powershell
