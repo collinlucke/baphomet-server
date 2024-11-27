@@ -1,4 +1,4 @@
-name: Deploy Baphomet Server
+name: Baphomet Server Deploy
 
 on:
   push:

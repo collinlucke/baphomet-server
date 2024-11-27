@@ -21,8 +21,8 @@ type Mutation {
     fullplot: String
   ): Movie
   deleteMovie(id: ID!): Boolean,
-  signUp(email: String, password: String): AuthPayload,
-  login(email: String, password: String): AuthPayload,
+  signUp(email: String, password: String): AuthToken,
+  login(email: String, password: String): AuthToken,
 }
 
 type Movie {
@@ -40,9 +40,8 @@ type User {
   password: String!
 }
 
-type AuthPayload {
+type AuthToken {
   token: String!
-  user: User!
 }
 
 type CheckAuth {
