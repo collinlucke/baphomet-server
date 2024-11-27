@@ -14,7 +14,7 @@ jobs:
 
       - name: Set Environment Variables
         shell: powershell
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./set-env-variables.ps1" -Verb
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./set-env-variables.ps1" -Verb RunAs
 
       - name: Install Docker Compose (if needed)
         shell: powershell
