@@ -45,7 +45,7 @@ jobs:
       - name: Install Docker Compose (if needed)
         shell: powershell
         run: |
-          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+          if (-not (Get-Command docker compose -ErrorAction SilentlyContinue)) {
             $installPath = "${{ runner.temp }}/docker-compose.exe"
             Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
             Start-Process -FilePath "powershell.exe" -ArgumentList "-Command
@@ -77,6 +77,7 @@ jobs:
       - name: Push Docker Images with Elevated Privileges
         shell: powershell
         run: |
+          Write-Output "Starting Docker push process..."
           $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs -Wait -PassThru
           $process.WaitForExit()
           if ($process.ExitCode -ne 0) {
@@ -91,7 +92,8 @@ jobs:
       # - name: Push Docker Images with Logging
       #   shell: powershell
       #   run: |
-      #     Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs -Wait -PassThru | ForEach-Object {
+      #   Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker compose -f docker
+      #   compose.yml push" -Verb RunAs -Wait -PassThru | ForEach-Object {
       #       $_.StandardOutput.ReadToEnd()
       #       $_.StandardError.ReadToEnd()
       #     }
@@ -114,7 +116,7 @@ jobs:
       - name: Install Docker Compose (if needed)
         shell: powershell
         run: |
-          if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+          if (-not (Get-Command docker compose -ErrorAction SilentlyContinue)) {
             $installPath = "${{ runner.temp }}/docker-compose.exe"
             Invoke-WebRequest -Uri "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe" -OutFile $installPath
             Start-Process -FilePath "powershell.exe" -ArgumentList "-Command
@@ -125,10 +127,10 @@ jobs:
           }
 
       - name: Pull Image from Docker Hub
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml pull" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker compose -f docker-compose.yml pull" -Verb RunAs
 
       - name: Delete Old Container
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml rm" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker compose -f docker-compose.yml rm" -Verb RunAs
 
       - name: Run Docker Container
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml up -d" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker compose -f docker-compose.yml up -d" -Verb RunAs
