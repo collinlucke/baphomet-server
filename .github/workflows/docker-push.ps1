@@ -1,4 +1,9 @@
-Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs -Wait -PassThru | ForEach-Object{
-    $_.StandardOutput.ReadToEnd() | Write-Output
-    $_.StandardError.ReadToEnd() | Write-Output
+try {
+    Write-Output "Starting Docker push process..."
+    docker-compose -f docker-compose.yml push
+    Write-Output "Docker push completed successfully."
+} catch {
+    Write-Output "Docker push failed."
+    Write-Output $_.Exception.Message
+    exit 1
 }
