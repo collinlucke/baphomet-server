@@ -73,7 +73,7 @@ jobs:
           Start-Process -FilePath "powershell.exe" -ArgumentList "-Command echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin" -Verb RunAs
       - name: Verify Docker Login
         shell: powershell
-        run: docker info
+        run: docker info -Verb RunAs
 
 
       - name: Verify Docker Hub Login
