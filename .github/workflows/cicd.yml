@@ -16,6 +16,10 @@ jobs:
         shell: powershell
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./set-env-variables.ps1" -Verb RunAs
 
+      - name: Verify Environment Variables
+        shell: powershell
+        run: cat .env
+
       - name: Install Docker Compose (if needed)
         shell: powershell
         run: |
@@ -32,6 +36,7 @@ jobs:
       - name: Docker Login
         run: |
           echo "-u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" --password-stdin
+          docker info | Select-String 'Username: ${{ secrets.DOCKER_USERNAME }}'
 
       - name: Verify Docker Hub Login
         shell: powershell
@@ -46,9 +51,24 @@ jobs:
         run: |
           Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
 
-      - name: Push Docker Images with Elevated Privileges
+      # - name: Push Docker Images with Elevated Privileges
+      #   shell: powershell
+      #   run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push --verbose" -Verb RunAs
+      
+      - name: Push Docker Images with Logging
         shell: powershell
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push --verbose" -Verb RunAs
+        run: |
+          Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs -Wait -PassThru | ForEach-Object {
+            $_.StandardOutput.ReadToEnd()
+            $_.StandardError.ReadToEnd()
+          }
+          if ($LASTEXITCODE -ne 0) {
+            Write-Output "Docker push failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          } else {
+            Write-Output "Docker push completed successfully."
+          }
+
 
   deploy:
     needs: build
