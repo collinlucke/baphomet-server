@@ -55,10 +55,26 @@ jobs:
             Write-Output "Docker Compose already installed"
           }
 
+      - name: List Files in Directory
+        shell: powershell
+        run: Get-ChildItem -Path .
+        
+
+      # - name: Docker Login with Elevated Permissions
+      #   shell: powershell
+      #   run: |
+      #   Start-Process -FilePath "powershell.exe" -ArgumentList "-Command echo ${{
+      #   secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }}
+      #   --password-stdin" -Verb RunAs
+      
       - name: Docker Login with Elevated Permissions
         shell: powershell
         run: |
           Start-Process -FilePath "powershell.exe" -ArgumentList "-Command echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin" -Verb RunAs
+      - name: Verify Docker Login
+        shell: powershell
+        run: docker info
+
 
       - name: Verify Docker Hub Login
         shell: powershell
