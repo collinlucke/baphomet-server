@@ -78,12 +78,12 @@ jobs:
         shell: powershell
         run: |
           Write-Output "Starting Docker push process..."
-          $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs -Wait -PassThru if
+          $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs -Wait -PassThru
           $process.WaitForExit()
           if ($process.ExitCode -ne 0) {
-            Write-Output "Docker push failed with exit code $($process.ExitCode)"
             $stdout = $process.StandardOutput.ReadToEnd()
             $stderr = $process.StandardError.ReadToEnd()
+            Write-Output "Docker push failed with exit code $($process.ExitCode)"
             Write-Output "Standard Output: $stdout"
             Write-Output "Standard Error: $stderr"
             exit $process.ExitCode
