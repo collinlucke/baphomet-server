@@ -66,48 +66,15 @@ jobs:
 
       - name: Build Docker Images with Elevated Privileges
         shell: powershell
-        
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./build-docker-image.ps1"
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml build" -Verb RunAs
 
       - name: Tag Docker Image with Elevated Privileges
         shell: powershell
-        run: |
-          Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
+        run: Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
 
       - name: Push Docker Images with Elevated Privileges
         shell: powershell
-        run: |
-          Write-Output "Starting Docker push process..."
-          $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs -Wait -PassThru
-          $process.WaitForExit()
-          if ($process.ExitCode -ne 0) {
-            $stdout = $process.StandardOutput.ReadToEnd()
-            $stderr = $process.StandardError.ReadToEnd()
-            Write-Output "Docker push failed with exit code $($process.ExitCode)"
-            Write-Output "Standard Output: $stdout"
-            Write-Output "Standard Error: $stderr"
-            exit $process.ExitCode
-          } else {
-            Write-Output "Docker push completed successfully."
-          }
-        
-          
-      
-      # - name: Push Docker Images with Logging
-      #   shell: powershell
-      #   run: |
-      #   Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker
-      #   compose.yml push" -Verb RunAs -Wait -PassThru | ForEach-Object {
-      #       $_.StandardOutput.ReadToEnd()
-      #       $_.StandardError.ReadToEnd()
-      #     }
-      #     if ($LASTEXITCODE -ne 0) {
-      #       Write-Output "Docker push failed with exit code $LASTEXITCODE"
-      #       exit $LASTEXITCODE
-      #     } else {
-      #       Write-Output "Docker push completed successfully."
-      #     }
-
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs
 
   deploy:
     needs: build
