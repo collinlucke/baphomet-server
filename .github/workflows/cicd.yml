@@ -78,23 +78,37 @@ jobs:
         run: |
           Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
 
-      # - name: Push Docker Images with Elevated Privileges
-      #   shell: powershell
-      #   run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push --verbose" -Verb RunAs
-      
-      - name: Push Docker Images with Logging
+      - name: Push Docker Images with Elevated Privileges
         shell: powershell
         run: |
-          Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs -Wait -PassThru | ForEach-Object {
-            $_.StandardOutput.ReadToEnd()
-            $_.StandardError.ReadToEnd()
-          }
-          if ($LASTEXITCODE -ne 0) {
-            Write-Output "Docker push failed with exit code $LASTEXITCODE"
-            exit $LASTEXITCODE
+          $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs -Wait -PassThru
+          $process.WaitForExit()
+          $stdout = $process.StandardOutput.ReadToEnd()
+          $stderr = $process.StandardError.ReadToEnd()
+          Write-Output "Standard Output: $stdout"
+          Write-Output "Standard Error: $stderr"
+          if ($process.ExitCode -ne 0) {
+            Write-Output "Docker push failed with exit code $($process.ExitCode)"
+            exit $process.ExitCode
           } else {
             Write-Output "Docker push completed successfully."
           }
+        
+          
+      
+      # - name: Push Docker Images with Logging
+      #   shell: powershell
+      #   run: |
+      #     Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs -Wait -PassThru | ForEach-Object {
+      #       $_.StandardOutput.ReadToEnd()
+      #       $_.StandardError.ReadToEnd()
+      #     }
+      #     if ($LASTEXITCODE -ne 0) {
+      #       Write-Output "Docker push failed with exit code $LASTEXITCODE"
+      #       exit $LASTEXITCODE
+      #     } else {
+      #       Write-Output "Docker push completed successfully."
+      #     }
 
 
   deploy:
