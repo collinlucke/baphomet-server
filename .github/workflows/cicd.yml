@@ -74,7 +74,7 @@ jobs:
 
       - name: Verify Docker Login
         shell: powershell
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command echo Start-Process -FilePath "powershell.exe" -ArgumentList "docker info" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker info" -Verb RunAs
 
 
       - name: Verify Docker Hub Login
