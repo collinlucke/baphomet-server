@@ -89,9 +89,22 @@ jobs:
             exit 1
           }
 
+      # - name: Push Docker Images with Elevated Privileges
+      #   shell: powershell
+      #   run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1"
+      #   -Verb RunAs
+      
       - name: Push Docker Images with Elevated Privileges
         shell: powershell
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs
+        run: |
+          if (Test-Path "./docker-push.ps1") {
+            Write-Output "Found docker-push.ps1 script, executing it..."
+            .\docker-push.ps1
+          } else {
+            Write-Output "docker-push.ps1 script not found."
+            exit 1
+          }
+
 
   deploy:
     needs: build
