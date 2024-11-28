@@ -1,6 +1,8 @@
 try {
     Write-Output "Starting Docker push process..."
-    docker-compose -f docker-compose.yml push | Write-Output
+    $pushOutput = docker-compose -f docker-compose.yml push 2>&1
+    Write-Output "Docker push output:"
+    Write-Output $pushOutput
     Write-Output "Docker push completed successfully."
 } catch {
     Write-Output "Docker push failed."
