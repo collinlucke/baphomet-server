@@ -12,11 +12,6 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
-      # - name: Set Environment Variables
-      #   shell: powershell
-      #   run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command
-      #   ./set-env-variables.ps1" -Verb RunAs
-      
       - name: Set Environment Variables
         shell: powershell
         run: |
@@ -35,11 +30,17 @@ jobs:
           $envContent | Out-File -FilePath ".env"
           Write-Output "Environment variables set."
 
-
-
-      - name: Verify Environment Variables
+      - name: Verify Working Directory and `.env` File Creation
         shell: powershell
-        run: cat .env
+        run: |
+          Write-Output "Current directory: $(Get-Location)"
+          if (Test-Path ".env") {
+            Write-Output ".env file exists:"
+            Get-Content ".env"
+          } else {
+            Write-Output ".env file does not exist."
+            exit 1
+          }
 
       - name: Install Docker Compose (if needed)
         shell: powershell
@@ -54,15 +55,9 @@ jobs:
             Write-Output "Docker Compose already installed"
           }
 
-      # - name: Docker Login
-      #   shell: powershell
-      #   run: |
-      #     echo "-u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}" --password-stdin
-      #     docker info | Select-String 'Username: ${{ secrets.DOCKER_USERNAME }}'
-
       - name: Docker Login with Elevated Permissions
         shell: powershell
-        run: 
+        run: |
           Start-Process -FilePath "powershell.exe" -ArgumentList "-Command echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin" -Verb RunAs
 
       - name: Verify Docker Hub Login
@@ -71,6 +66,7 @@ jobs:
 
       - name: Build Docker Images with Elevated Privileges
         shell: powershell
+        
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./build-docker-image.ps1"
 
       - name: Tag Docker Image with Elevated Privileges
@@ -81,12 +77,8 @@ jobs:
       - name: Push Docker Images with Elevated Privileges
         shell: powershell
         run: |
-          $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml push" -Verb RunAs -Wait -PassThru
+          $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs -Wait -PassThru
           $process.WaitForExit()
-          $stdout = $process.StandardOutput.ReadToEnd()
-          $stderr = $process.StandardError.ReadToEnd()
-          Write-Output "Standard Output: $stdout"
-          Write-Output "Standard Error: $stderr"
           if ($process.ExitCode -ne 0) {
             Write-Output "Docker push failed with exit code $($process.ExitCode)"
             exit $process.ExitCode
@@ -133,11 +125,10 @@ jobs:
           }
 
       - name: Pull Image from Docker Hub
-        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml pull --verbose" -Verb RunAs
+        run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml pull" -Verb RunAs
 
       - name: Delete Old Container
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml rm" -Verb RunAs
-        
 
       - name: Run Docker Container
         run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker-compose -f docker-compose.yml up -d" -Verb RunAs
