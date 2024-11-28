@@ -74,18 +74,22 @@ jobs:
         run: |
           Start-Process -FilePath "docker" -ArgumentList "tag baphomet-server:latest collinlucke/baphomet-server:latest" -Verb RunAs
 
-      - name: Push Docker Images with Elevated Privileges
-        shell: powershell
-        run: |
-          Write-Output "Starting Docker push process..."
-          $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs -Wait -PassThru
-          $process.WaitForExit()
-          if ($process.ExitCode -ne 0) {
-            Write-Output "Docker push failed with exit code $($process.ExitCode)"
-            exit $process.ExitCode
-          } else {
-            Write-Output "Docker push completed successfully."
-          }
+          - name: Push Docker Images with Elevated Privileges
+            shell: powershell
+            run: |
+              Write-Output "Starting Docker push process..."
+              $process = Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1" -Verb RunAs -Wait -PassThru if
+              $process.WaitForExit()
+              if ($process.ExitCode -ne 0) {
+                Write-Output "Docker push failed with exit code $($process.ExitCode)"
+                $stdout = $process.StandardOutput.ReadToEnd()
+                $stderr = $process.StandardError.ReadToEnd()
+                Write-Output "Standard Output: $stdout"
+                Write-Output "Standard Error: $stderr"
+                exit $process.ExitCode
+              } else {
+                Write-Output "Docker push completed successfully."
+              }
         
           
       
