@@ -39,3 +39,10 @@ jobs:
 
       - name: Push Docker Image
         run: docker push collinlucke/baphomet-server:latest
+
+      - name: Deploy to Server
+        run: |
+          ssh -o StrictHostKeyChecking=no user@your_server_ip 'bash -s' < deploy.sh
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
