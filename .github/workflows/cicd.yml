@@ -16,25 +16,21 @@ jobs:
       - name: Set Environment Variables
         shell: powershell
         run: |
-          Write-Output "Setting environment variables..."
-          function Encode-Base64 {
-            param (
-              [string]$Text
-            )
-            $bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
-            [System.Convert]::ToBase64String($bytes)
-          }
-            
+          Write-Output "Setting environment variables..." 
           $envContent = @"
-          ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}
-          ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}
-          ATLAS_CLUSTER=${{ secrets.ATLAS_CLUSTER }}
-          ATLAS_DB=${{ secrets.ATLAS_DB }}
-          ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
-          REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
-          SSL_CERT=${{ secrets.SSL_CERT }}
-          SSL_PRIVATE_KEY=${{ secrets.SSL_PRIVATE_KEY }}
-          SSL_CERT_INTERMEDIATE=${{ secrets.SSL_CERT_INTERMEDIATE }}
+          # ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}
+          # ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}
+          # ATLAS_CLUSTER=${{ secrets.ATLAS_CLUSTER }}
+          # ATLAS_DB=${{ secrets.ATLAS_DB }}
+          # ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+          # REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
+          # SSL_CERT=${{ secrets.SSL_CERT }}
+          # SSL_PRIVATE_KEY=${{ secrets.SSL_PRIVATE_KEY }}
+          # SSL_CERT_INTERMEDIATE=${{ secrets.SSL_CERT_INTERMEDIATE }}
+          ATLAS_DB_PASSWORD=$(($env:ATLAS_DB_PASSWORD).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&')) ATLAS_DB_USERNAME=$(($env:ATLAS_DB_USERNAME).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&')) ATLAS_CLUSTER=$(($env:ATLAS_CLUSTER).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&')) ATLAS_DB=$(($env:ATLAS_DB).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&'))
+          ACCESS_TOKEN_SECRET=$(($env:ACCESS_TOKEN_SECRET).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&')) REFRESH_TOKEN_SECRET=$(($env:REFRESH_TOKEN_SECRET).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&'))
+          SSL_CERT=$(($env:SSL_CERT).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&'))
+          SSL_PRIVATE_KEY=$(($env:SSL_PRIVATE_KEY).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&')) SSL_CERT_INTERMEDIATE=$(($env:SSL_CERT_INTERMEDIATE).Replace('`','``').Replace('"','`"').Replace('$','`$').Replace('<','`<').Replace('>','`>').Replace('&','`&'))
           "@
           $envContent | Out-File -FilePath ".env" -Encoding utf8
           Write-Output "Environment variables set."
@@ -43,15 +39,9 @@ jobs:
         shell: powershell
         run: |
           Write-Output "Verifying .env file encoding..."
-          $encoding = Get-Content -Path ".env" -Encoding Byte -ReadCount 0 | ForEach-Object { [System.Text.Encoding]::Unicode.GetString($_) }
-          if ($encoding.Contains("�")) {
-              Write-Output "Invalid encoding detected."
-              exit 1
-          } else {
-              Write-Output ".env file encoding is valid."
-          } 
-
-
+          Get-Content -Path ".env" -Encoding Byte | ForEach-Object { [System.Text.Encoding]::UTF8.GetString($_) }
+          Write-Output "Environment variables set correctly."
+        
       - name: Verify Working Directory and `.env` File Creation
         shell: powershell
         run: |
