@@ -28,8 +28,21 @@ jobs:
           SSL_PRIVATE_KEY=${{ secrets.SSL_PRIVATE_KEY }}
           SSL_CERT_INTERMEDIATE=${{ secrets.SSL_CERT_INTERMEDIATE }}
           "@
-          $envContent | Out-File -FilePath ".env"
+          $envContent | Out-File -FilePath ".env" -Encoding utf8
           Write-Output "Environment variables set."
+
+      - name: Verify `.env` File Encoding
+        shell: powershell
+        run: |
+          Write-Output "Verifying .env file encoding..."
+          $encoding = Get-Content -Path ".env" -Encoding Byte -ReadCount 0 | ForEach-Object { [System.Text.Encoding]::Unicode.GetString($_) }
+          if ($encoding.Contains("�")) {
+              Write-Output "Invalid encoding detected."
+              exit 1
+          } else {
+              Write-Output ".env file encoding is valid."
+          } 
+
 
       - name: Verify Working Directory and `.env` File Creation
         shell: powershell
