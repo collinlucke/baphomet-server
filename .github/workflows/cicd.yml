@@ -32,15 +32,14 @@ jobs:
           ATLAS_DB=${{ secrets.ATLAS_DB }}
           ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
           REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
-          SSL_CERT=${{ secrets.SSL_CERT }}
+          SSL_CERT=$(Encode-Base64 "${{ secrets.SSL_CERT }}")
           SSL_PRIVATE_KEY=$(Encode-Base64 "${{ secrets.SSL_PRIVATE_KEY }}")
-          SSL_CERT_INTERMEDIATE=${{ secrets.SSL_CERT_INTERMEDIATE }}
+          SSL_CERT_INTERMEDIATE=$(Encode-Base64 "${{ secrets.SSL_CERT_INTERMEDIATE }}")
           "@
       
           $envVars | Out-File -FilePath ".env" -Encoding utf8
           Write-Output "Environment variables set."
-
-
+      
       - name: Verify `.env` File
         shell: powershell
         run: |
@@ -105,11 +104,6 @@ jobs:
             Write-Output "docker-push.ps1 script not found."
             exit 1
           }
-
-      # - name: Push Docker Images with Elevated Privileges
-      #   shell: powershell
-      #   run: Start-Process -FilePath "powershell.exe" -ArgumentList "-Command ./docker-push.ps1"
-      #   -Verb RunAs
       
       - name: Push Docker Images with Elevated Privileges
         shell: powershell
