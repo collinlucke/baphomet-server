@@ -17,6 +17,14 @@ jobs:
         shell: powershell
         run: |
           Write-Output "Setting environment variables..."
+          function Encode-Base64 {
+            param (
+              [string]$Text
+            )
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
+            [System.Convert]::ToBase64String($bytes)
+          }
+            
           $envContent = @"
           ATLAS_DB_PASSWORD=${{ secrets.ATLAS_DB_PASSWORD }}
           ATLAS_DB_USERNAME=${{ secrets.ATLAS_DB_USERNAME }}

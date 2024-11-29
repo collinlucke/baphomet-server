@@ -11,6 +11,7 @@ import http from 'http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import dotenv from 'dotenv';
+import { atob } from 'buffer';
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
@@ -75,9 +76,13 @@ httpServer.listen(5050, () => {
 });
 
 // Serve HTTPS on port 443
+
 const readCert = (envVar, filePath) => {
   if (process.env[envVar]) {
-    return process.env[envVar].replace(/\\n/g, '\n');
+    const decodedValue = Buffer.from(process.env[envVar], 'base64').toString(
+      'utf8'
+    );
+    return decodedValue.replace(/\\n/g, '\n');
   }
   return fs.readFileSync(path.join(__dirname, filePath), 'utf8');
 };
