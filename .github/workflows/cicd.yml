@@ -41,12 +41,12 @@ jobs:
           Write-Output "Environment variables set."
 
 
-      - name: Verify `.env` File Encoding
+      - name: Verify `.env` File
         shell: powershell
         run: |
-          Write-Output "Verifying .env file encoding..."
-          Get-Content -Path ".env" -Encoding Byte | ForEach-Object { [System.Text.Encoding]::UTF8.GetString($_) }
-          Write-Output "Environment variables set correctly."
+          Write-Output "Verifying .env file contents..."
+          Get-Content -Path ".env"
+        
         
       - name: Verify Working Directory and `.env` File Creation
         shell: powershell
