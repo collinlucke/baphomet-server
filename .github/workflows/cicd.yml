@@ -35,16 +35,21 @@ jobs:
           SSL_CERT=$(Encode-Base64 "${{ secrets.SSL_CERT }}")
           SSL_PRIVATE_KEY=$(Encode-Base64 "${{ secrets.SSL_PRIVATE_KEY }}")
           SSL_CERT_INTERMEDIATE=$(Encode-Base64 "${{ secrets.SSL_CERT_INTERMEDIATE }}")
+          SSL_KEY_PATH=./keyfile.key
+          SSL_CERT_PATH=./certfile.cer
+          SSL_CA_PATH=./intermediate.cer
           "@
       
           $envVars | Out-File -FilePath ".env" -Encoding utf8
           Write-Output "Environment variables set."
+      
       
       - name: Verify `.env` File
         shell: powershell
         run: |
           Write-Output "Verifying .env file contents..."
           Get-Content -Path ".env"
+        
         
         
       - name: Verify Working Directory and `.env` File Creation
