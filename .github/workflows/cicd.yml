@@ -121,9 +121,11 @@ jobs:
             exit 1
           }
         
-      - name: Verify Docker Login
+      - name: Verify Docker Login again
         shell: powershell
-        run: docker info
+        run: |
+          Start-Process -FilePath "powershell.exe" -ArgumentList "-Command docker info" -Verb RunAs
+          Write-Output "Verifying Docker login..."
         
 
   deploy:
