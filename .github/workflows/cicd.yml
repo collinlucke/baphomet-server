@@ -114,12 +114,13 @@ jobs:
         shell: powershell
         run: |
           if (Test-Path "./docker-push.ps1") {
-            Write-Output "Found docker-push.ps1 script, executing it..."
-            .\docker-push.ps1
+            Write-Output "Found docker-push.ps1 script, executing it with elevated privileges..."
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-Command .\docker-push.ps1" -Verb RunAs
           } else {
             Write-Output "docker-push.ps1 script not found."
             exit 1
           }
+        
 
 
   deploy:
