@@ -42,7 +42,8 @@ jobs:
 
       - name: Deploy to Server
         run: |
-          ssh -o StrictHostKeyChecking=no user@192.168.1.52 'bash -s' < /c/git/baphomet-server/deploy.sh
+          ssh -o StrictHostKeyChecking=no ohclt@192.168.1.52 '~/deploy.sh'
+
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
