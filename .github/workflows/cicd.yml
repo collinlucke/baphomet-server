@@ -40,10 +40,13 @@ jobs:
       - name: Push Docker Image
         run: docker push collinlucke/baphomet-server:latest
 
-      - name: Deploy to Server
-        run: |
-          ssh -o StrictHostKeyChecking=no ohclt@192.168.1.52 '~/deploy.sh'
+      - name: Add SSH Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Deploy to Server
+        run: ssh -o StrictHostKeyChecking=no -p 443 ohclt@192.168.1.52 '~/deploy.sh'
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
