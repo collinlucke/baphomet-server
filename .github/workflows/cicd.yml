@@ -46,7 +46,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy to Server
-        shell: pwsh
+        shell: powershell
         run: ssh -o StrictHostKeyChecking=no ohclt@192.168.1.52 'C:/git/baphomet-server/deploy.sh'
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
