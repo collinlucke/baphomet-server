@@ -24,9 +24,9 @@ jobs:
 
       - name: Decode and Write SSL Certificates
         run: |
-          echo "${{ secrets.SSL_CERT }}" | base64 --decode > certfile.cer
-          echo "${{ secrets.SSL_PRIVATE_KEY }}" | base64 --decode > keyfile.key
-          echo "${{ secrets.SSL_CERT_INTERMEDIATE }}" | base64 --decode > intermediate.cer
+          echo "${{ secrets.SSL_CERT_BASE64 }}" | base64 --decode > certfile.cer
+          echo "${{ secrets.SSL_PRIVATE_KEY_BASE64 }}" | base64 --decode > keyfile.key
+          echo "${{ secrets.SSL_CERT_INTERMEDIATE_BASE64 }}" | base64 --decode > intermediate.cer
           echo "SSL_CERT_PATH=certfile.cer" >> $GITHUB_ENV
           echo "SSL_KEY_PATH=keyfile.key" >> $GITHUB_ENV
           echo "SSL_CA_PATH=intermediate.cer" >> $GITHUB_ENV
