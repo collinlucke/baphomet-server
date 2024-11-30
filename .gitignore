@@ -8,3 +8,4 @@
 *.cer
 *.key
 *set-env.sh
+deploy.sh
