@@ -46,7 +46,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy to Server
-        run: ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ohclt@192.168.1.52 'bash ~/deploy.sh'
+        run: ssh -o StrictHostKeyChecking=no ohclt@192.168.1.52 'bash ~/deploy.sh'
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
