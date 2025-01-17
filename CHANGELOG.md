@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.2.1] - 11/19/2024
+
+### Added
+
+- Added logic for returning movies based on scrolling and searching
+
+### Changed
+
+- ## N/A
+
+### Removed
+
+- ## N/A
+
+### Fixed
+
+- production / development fixes 
+
+<br/>
+
 ## [0.2.0] - 11/19/2024
 
 ### Added

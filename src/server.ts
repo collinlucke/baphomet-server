@@ -76,24 +76,25 @@ httpServer.listen(5050, () => {
 });
 
 // Serve HTTPS on port 443
+if (process.env.NODE_ENV === 'production') {
+  const readCert = (envVar, filePath) => {
+    if (process.env[envVar]) {
+      const decodedValue = Buffer.from(process.env[envVar], 'base64').toString(
+        'utf8'
+      );
+      return decodedValue.replace(/\\n/g, '\n');
+    }
+    return fs.readFileSync(path.join(__dirname, filePath), 'utf8');
+  };
 
-const readCert = (envVar, filePath) => {
-  if (process.env[envVar]) {
-    const decodedValue = Buffer.from(process.env[envVar], 'base64').toString(
-      'utf8'
-    );
-    return decodedValue.replace(/\\n/g, '\n');
-  }
-  return fs.readFileSync(path.join(__dirname, filePath), 'utf8');
-};
+  const httpsOptions = {
+    key: readCert('SSL_PRIVATE_KEY', '../keyfile.key'),
+    cert: readCert('SSL_CERT', '../certfile.cer'),
+    ca: [readCert('SSL_CERT_INTERMEDIATE', '../intermediate.cer')]
+  };
 
-const httpsOptions = {
-  key: readCert('SSL_PRIVATE_KEY', '../keyfile.key'),
-  cert: readCert('SSL_CERT', '../certfile.cer'),
-  ca: [readCert('SSL_CERT_INTERMEDIATE', '../intermediate.cer')]
-};
-
-const httpsServer = https.createServer(httpsOptions, app);
-httpsServer.listen(443, () => {
-  console.log('Server is running on https://localhost:443');
-});
+  const httpsServer = https.createServer(httpsOptions, app);
+  httpsServer.listen(443, () => {
+    console.log('Server is running on https://localhost:443');
+  });
+}

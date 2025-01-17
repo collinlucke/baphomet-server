@@ -10,18 +10,47 @@ const resolvers = {
   },
   Query: {
     async getMovie(_, { id }) {
-      let collection = db.collection('movies');
+      let collection = db.collection('devMovies');
       let query = { _id: new ObjectId(id.toString()) };
       return await collection.findOne(query);
     },
-    async getAllMovies(_, { limit, searchTerm }) {
-      let collection = db.collection('movies');
-      const movies = await collection
-        .find({ title: new RegExp(searchTerm, 'i') })
-        .sort({ title: 1 })
-        .limit(limit ? limit : 0)
+    async getAllMovies(
+      _,
+      { limit = 20, searchTerm = '', cursor = '', loadAction = 'scroll' }
+    ) {
+      let collection = db.collection('devMovies');
+      collection.createIndex({ title: 1 });
+
+      const baseQuery = {
+        $and: [
+          { title: new RegExp(searchTerm, 'i') },
+          { title: { $gt: cursor } }
+        ]
+      };
+
+      const newTotalMovieCount = await collection.countDocuments({
+        title: new RegExp(searchTerm, 'i')
+      });
+
+      const newMovies = await collection
+        .aggregate([
+          { $match: baseQuery },
+          { $sort: { title: 1 } },
+          { $limit: limit }
+        ])
         .toArray();
-      return await movies;
+
+      const newCursor = newMovies[newMovies.length - 1].title;
+
+      const endOfResults = newMovies.length < limit;
+
+      return {
+        newMovies,
+        newTotalMovieCount,
+        newCursor,
+        loadAction,
+        endOfResults
+      };
     },
     async checkAuth(_, args) {
       const token = args.token;

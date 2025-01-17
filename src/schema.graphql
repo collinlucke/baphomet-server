@@ -5,7 +5,7 @@ schema {
 
 type Query {
   getMovie(id: ID!): Movie
-  getAllMovies(limit: Int, searchTerm: String): [Movie]
+  getAllMovies(limit: Int, searchTerm: String, cursor: String, loadAction: String): MoviesResult
   currentUser: User
   checkAuth(token: String): CheckAuth
 }
@@ -32,6 +32,14 @@ type Movie {
   rated: String
   poster: String
   fullplot: String
+}
+
+type MoviesResult {
+  newMovies: [Movie]
+  newTotalMovieCount: Int
+  newCursor: String
+  loadAction: String,
+  endOfResults: Boolean
 }
 
 type User {
