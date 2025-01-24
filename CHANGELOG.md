@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.2.2] - 2025-23-01
+
+### Added
+
+- ## N/A
+
+### Changed
+
+- ## N/A
+
+### Removed
+
+- ## N/A
+
+### Fixed
+
+- Fixed the searching/scrolling logic
+
+<br/>
+
 ## [0.2.1] - 11/19/2024
 
 ### Added

@@ -40,14 +40,22 @@ const resolvers = {
         ])
         .toArray();
 
-      const newCursor = newMovies[newMovies.length - 1].title;
-
       const endOfResults = newMovies.length < limit;
+
+      if (!newMovies.length) {
+        return {
+          newMovies: [],
+          newTotalMovieCount: 0,
+          newCursor: '',
+          loadAction,
+          endOfResults
+        };
+      }
 
       return {
         newMovies,
         newTotalMovieCount,
-        newCursor,
+        newCursor: newMovies[newMovies.length - 1].title || '',
         loadAction,
         endOfResults
       };
