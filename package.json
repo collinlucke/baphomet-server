@@ -7,9 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
-    "start": "npm run compile && node dist/server.js",
+    "build": "npm run compile",
+    "start": "node dist/server.js",
     "prod": "NODE_ENV=production npm run start",
-    "dev": "NODE_ENV=development npm run start"
+    "dev": "NODE_ENV=development npm run compile && node dist/server.js"
   },
   "keywords": [],
   "author": "",

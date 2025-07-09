@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: baphomet-server
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # All are pulled from GitHub secrets:
+      # - ATLAS_DB_USERNAME
+      # - ATLAS_DB_PASSWORD  
+      # - ATLAS_CLUSTER
+      # - ATLAS_PROD_DB
+      # - ACCESS_TOKEN_SECRET
+      # - BAPHOMET_UI_URL (your Ionos frontend domain)

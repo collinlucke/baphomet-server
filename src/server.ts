@@ -11,7 +11,6 @@ import http from 'http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import dotenv from 'dotenv';
-import { atob } from 'buffer';
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
@@ -25,7 +24,12 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const corsOptions = {
-  credentials: true
+  credentials: true,
+  origin: [
+    'http://localhost:3000', // Local development
+    'http://localhost:5173', // Vite dev server
+    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Your Ionos frontend URL
+  ]
 };
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -61,22 +65,20 @@ app.use(
   })
 );
 
-// Serve static files from the frontend build directory
-app.use(express.static(path.join(__dirname, '../../usr/src/app/dist')));
-
-// Serve the index.html file for any unmatched routes (SPA)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../usr/src/app/dist', 'index.html'));
+// Add a simple health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', service: 'baphomet-server' });
 });
 
-// Serve HTTP on port 5050
+// Serve HTTP on the port provided by Render or default to 5050
+const PORT = process.env.PORT || 5050;
 const httpServer = http.createServer(app);
-httpServer.listen(5050, () => {
-  console.log(`🚀 HTTP server listening on port 5050`);
+httpServer.listen(PORT, () => {
+  console.log(`🚀 HTTP server listening on port ${PORT}`);
 });
 
-// Serve HTTPS on port 443
-if (process.env.NODE_ENV === 'production') {
+// HTTPS is handled by Render automatically - only use local HTTPS if SSL certs are provided
+if (process.env.NODE_ENV === 'production' && process.env.SSL_PRIVATE_KEY) {
   const readCert = (envVar, filePath) => {
     if (process.env[envVar]) {
       const decodedValue = Buffer.from(process.env[envVar], 'base64').toString(
