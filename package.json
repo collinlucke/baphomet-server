@@ -7,9 +7,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
-    "copy-files": "cp src/*.js dist/ && cp src/*.graphql dist/",
-    "build": "pnpm run compile && pnpm run copy-files",
-    "start": "node dist/server.js",
+    "copy-files": "mkdir -p dist 2>/dev/null || true && cp src/*.js dist/ && cp src/*.graphql dist/",
+    "build": "pnpm run compile && pnpm run copy-files && ls -la dist/",
+    "start": "node ../dist/server.js 2>/dev/null || node dist/server.js",
     "kill-port": "bash kill-port.sh",
     "dev": "pnpm run kill-port && pnpm run build && pnpm start",
     "prod": "NODE_ENV=production npm run start",
