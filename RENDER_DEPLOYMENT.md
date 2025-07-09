@@ -23,8 +23,8 @@ All are pulled from GitHub secrets save for the NODE_ENV
    
 2. **Create a new Web Service in Render:**
    - Connect your repository
-   - Set Build Command: `npm install && npm run build`
-   - Set Start Command: `npm start`
+   - Set Build Command: `pnpm install --frozen-lockfile && pnpm run build`
+   - Set Start Command: `pnpm start`
    - Set Environment: `Node`
 
 3. **Configure Environment Variables:**
@@ -68,6 +68,10 @@ NODE_ENV=production npm start
 
 ## Troubleshooting:
 
+- **"Cannot find module server.ts" Error**: 
+  - Check that `package.json` main field points to `dist/server.js` not `server.ts`
+  - Verify build and start commands in Render dashboard match the `render.yaml` file
+  - Ensure the build process is copying all JavaScript files to dist folder
 - **Build Fails**: Check that all dependencies are in `dependencies` not `devDependencies`
 - **Server Won't Start**: Verify the PORT environment variable is being used correctly
 - **Database Connection Issues**: Check MongoDB Atlas IP whitelist and connection string

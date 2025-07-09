@@ -72,7 +72,27 @@ app.get('/health', (req, res) => {
 
 // Serve HTTP on the port provided by Render or default to 5050
 const PORT = process.env.PORT || 5050;
+
 const httpServer = http.createServer(app);
+
+// Handle port already in use error
+httpServer.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use.`);
+    console.log(`💡 To kill the process using port ${PORT}:`);
+    if (process.platform === 'win32') {
+      console.log(`   Run: netstat -ano | findstr :${PORT}`);
+      console.log(`   Then: taskkill /PID <PID> /F`);
+    } else {
+      console.log(`   Run: lsof -ti:${PORT} | xargs kill -9`);
+    }
+    process.exit(1);
+  } else {
+    console.error('Server error:', err);
+    process.exit(1);
+  }
+});
+
 httpServer.listen(PORT, () => {
   console.log(`🚀 HTTP server listening on port ${PORT}`);
 });
