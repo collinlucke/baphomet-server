@@ -4,13 +4,16 @@ schema {
 }
 
 type Query {
+  # Movie operations - used by frontend
   getMovie(id: ID!): Movie
   getAllMovies(limit: Int, searchTerm: String, cursor: String, loadAction: String): MoviesResult
-  currentUser: User
+  
+  # Authentication operations - used by frontend
   checkAuth(token: String): CheckAuth
 }
 
 type Mutation {
+  # Movie operations - used by frontend
   addMovie(title: String!, releaseDate: String, rated: String, poster: String, fullplot: String): Movie
   updateMovie(
     id: ID!
@@ -20,9 +23,10 @@ type Mutation {
     poster: String
     fullplot: String
   ): Movie
-  deleteMovie(id: ID!): Boolean,
-  signUp(email: String, password: String): AuthToken,
-  login(email: String, password: String): AuthToken,
+  deleteMovie(id: ID!): Boolean
+  
+  # User operations - used by frontend
+  login(email: String!, password: String!): AuthToken
 }
 
 type Movie {
@@ -42,16 +46,11 @@ type MoviesResult {
   endOfResults: Boolean
 }
 
-type User {
-  id: ID!
-  email: String!
-  password: String!
-}
-
 type AuthToken {
   token: String!
 }
 
 type CheckAuth {
   isValid: Boolean
+  message: String
 }

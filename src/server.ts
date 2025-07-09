@@ -16,7 +16,7 @@ import {
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
 import { authenticateToken } from './authenticateToken.js';
-import apiRoutes from './apiRoutes.js';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -53,12 +53,11 @@ const server = new ApolloServer({
 
 await server.start();
 
-// GraphQL endpoint (protected)
+// Main GraphQL endpoint - handles both public and authenticated operations
 app.use(
   '/graphql',
   cors(),
   express.json(),
-  authenticateToken,
   expressMiddleware(server, {
     context: async ({ req }) => {
       const token = req.headers.authorization || '';
@@ -67,35 +66,29 @@ app.use(
   })
 );
 
-// API Routes for frontend integration (some protected, some public)
-app.use('/api', apiRoutes);
-
-// Health check endpoint (public)
+// Health check endpoint for monitoring and deployment
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', service: 'baphomet-server' });
+  res.status(200).json({ 
+    status: 'OK', 
+    service: 'baphomet-server',
+    timestamp: new Date().toISOString(),
+    graphql: '/graphql'
+  });
 });
 
-// CORS preflight handling for all routes
+// CORS preflight handling
 app.options('*', cors(corsOptions));
-
-// Handle SPA routing for frontend - don't redirect, return JSON with frontend URL
+// Handle SPA routing for frontend - redirect unknown routes to frontend
 app.get('*', (req, res) => {
-  // For API requests that don't exist, return 404
-  if (req.path.startsWith('/api/') || req.path.startsWith('/graphql')) {
-    return res.status(404).json({
-      error: 'API endpoint not found',
-      path: req.path,
-      availableEndpoints: ['/health', '/api/health', '/graphql']
-    });
-  }
-
-  // For frontend routes, return info about where the frontend is hosted
+  // For any unknown requests, provide info about the API
   const frontendUrl = process.env.BAPHOMET_UI_URL || 'https://collinlucke.com';
   res.json({
-    message: 'Frontend is hosted separately',
-    frontendUrl: frontendUrl,
+    message: 'Baphomet Server - GraphQL API',
+    frontend: frontendUrl,
+    graphql: '/graphql',
+    health: '/health',
     requestedPath: req.path,
-    fullUrl: `${frontendUrl}${req.path}`
+    note: 'This is a GraphQL API server. The frontend is hosted separately.'
   });
 });
 
@@ -123,7 +116,9 @@ httpServer.on('error', (err: any) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`🚀 HTTP server listening on port ${PORT}`);
+  console.log(`🚀 GraphQL server running on port ${PORT}`);
+  console.log(`📊 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+  console.log(`🔍 Health check: http://localhost:${PORT}/health`);
 });
 
 // HTTPS is handled by Render automatically - only use local HTTPS if SSL certs are provided

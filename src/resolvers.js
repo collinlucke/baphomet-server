@@ -63,17 +63,29 @@ const resolvers = {
     async checkAuth(_, args) {
       const token = args.token;
       try {
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        return { isValid: true };
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        return { isValid: true, message: 'Token is valid' };
       } catch (error) {
-        return { isValid: false, error };
+        return { isValid: false, message: error.message };
       }
     }
   },
 
   Mutation: {
-    async addMovie(_, { title, releaseDate, rated, poster, fullplot }) {
-      let collection = db.collection('movies');
+    async addMovie(_, { title, releaseDate, rated, poster, fullplot }, context) {
+      // This operation requires authentication
+      const token = context.token;
+      if (!token) {
+        throw new Error('Authentication required to add movies');
+      }
+
+      try {
+        jwt.verify(token.replace('Bearer ', ''), process.env.ACCESS_TOKEN_SECRET);
+      } catch (error) {
+        throw new Error('Invalid authentication token');
+      }
+
+      let collection = db.collection('devMovies');
       const insert = await collection.insertOne({
         title,
         releaseDate,
@@ -82,40 +94,52 @@ const resolvers = {
         fullplot
       });
       if (insert.acknowledged)
-        return { title, releaseDate, rated, poster, id: insert.insertedId };
+        return { title, releaseDate, rated, poster, fullplot, id: insert.insertedId };
       return null;
     },
-    async updateMovie(_, args) {
+    async updateMovie(_, args, context) {
+      // This operation requires authentication
+      const token = context.token;
+      if (!token) {
+        throw new Error('Authentication required to update movies');
+      }
+
+      try {
+        jwt.verify(token.replace('Bearer ', ''), process.env.ACCESS_TOKEN_SECRET);
+      } catch (error) {
+        throw new Error('Invalid authentication token');
+      }
+
       const id = new ObjectId(args.id);
       let query = { _id: new ObjectId(id) };
-      let collection = db.collection('movies');
+      let collection = db.collection('devMovies');
       const update = await collection.updateOne(query, { $set: { ...args } });
 
       if (update.acknowledged) return await collection.findOne(query);
 
       return null;
     },
-    async deleteMovie(_, { id }) {
-      let collection = db.collection('movies');
+    async deleteMovie(_, { id }, context) {
+      // This operation requires authentication
+      const token = context.token;
+      if (!token) {
+        throw new Error('Authentication required to delete movies');
+      }
+
+      try {
+        jwt.verify(token.replace('Bearer ', ''), process.env.ACCESS_TOKEN_SECRET);
+      } catch (error) {
+        throw new Error('Invalid authentication token');
+      }
+
+      let collection = db.collection('devMovies');
       const dbDelete = await collection.deleteOne({
         _id: new ObjectId(id)
       });
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
     },
-    async signUp(_, { email, password }) {
-      const saltRounds = 10;
-      const collection = db.collection('users');
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const user = await collection.insertOne({
-        email,
-        password: hashedPassword
-      });
-
-      return {
-        token: generateToken(user, process.env.ACCESS_TOKEN_SECRET, '1h')
-      };
-    },
     async login(_, { email, password }) {
+      // Public operation - no authentication required
       let collection = db.collection('users');
       const user = await collection.findOne({
         email
@@ -131,7 +155,7 @@ const resolvers = {
         throw new Error('Invalid password.');
       }
       return {
-        token: generateToken(user, process.env.ACCESS_TOKEN_SECRET, '1h')
+        token: generateToken({ id: user._id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, '1h')
       };
     }
   }
