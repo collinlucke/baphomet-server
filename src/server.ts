@@ -71,7 +71,7 @@ app.get('/health', (req, res) => {
 });
 
 // Serve HTTP on the port provided by Render or default to 5050
-const PORT = process.env.PORT || 5050;
+const PORT = parseInt(process.env.PORT || '5050');
 
 const httpServer = http.createServer(app);
 
