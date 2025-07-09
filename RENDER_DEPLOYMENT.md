@@ -41,7 +41,9 @@ All are pulled from GitHub secrets save for the NODE_ENV
 ## Key Changes Made for Render Compatibility:
 
 ✅ **Port Configuration**: Changed from hardcoded port 5050 to use `process.env.PORT`
-✅ **Build Scripts**: Added proper build script and separated compile from start
+✅ **Build Scripts**: Fixed to copy JavaScript files and GraphQL schema to dist folder
+✅ **Module Imports**: Fixed import paths to work with compiled structure
+✅ **Package Manager**: Updated to use pnpm consistently
 ✅ **HTTPS Handling**: Disabled local HTTPS since Render handles SSL automatically
 ✅ **CORS Configuration**: Configured for separate frontend deployment on Ionos
 ✅ **Removed Docker**: Removed Docker-related static file serving (frontend is on Ionos)

@@ -4,7 +4,7 @@ import gql from 'graphql-tag';
 import { ApolloServer } from '@apollo/server';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { expressMiddleware } from '@apollo/server/express4';
-import resolvers from '../src/resolvers.js';
+import resolvers from './resolvers.js';
 import fs from 'fs';
 import https from 'https';
 import http from 'http';
@@ -15,7 +15,7 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
-import { authenticateToken } from '../src/authenticateToken.js';
+import { authenticateToken } from './authenticateToken.js';
 
 dotenv.config();
 
@@ -35,7 +35,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 const typeDefs = gql(
-  fs.readFileSync(path.join(__dirname, '../src/schema.graphql'), {
+  fs.readFileSync(path.join(__dirname, './schema.graphql'), {
     encoding: 'utf-8'
   })
 );

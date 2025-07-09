@@ -7,10 +7,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
-    "build": "npm run compile",
+    "copy-files": "cp src/*.js dist/ && cp src/*.graphql dist/",
+    "build": "npm run compile && npm run copy-files",
     "start": "node dist/server.js",
     "prod": "NODE_ENV=production npm run start",
-    "dev": "NODE_ENV=development npm run compile && node dist/server.js"
+    "dev": "NODE_ENV=development npm run compile && npm run copy-files && node dist/server.js"
   },
   "keywords": [],
   "author": "",
