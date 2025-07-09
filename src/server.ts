@@ -16,6 +16,7 @@ import {
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
 import { authenticateToken } from './authenticateToken.js';
+import apiRoutes from './apiRoutes.js';
 
 dotenv.config();
 
@@ -52,6 +53,7 @@ const server = new ApolloServer({
 
 await server.start();
 
+// GraphQL endpoint (protected)
 app.use(
   '/graphql',
   cors(),
@@ -65,9 +67,36 @@ app.use(
   })
 );
 
-// Add a simple health check endpoint
+// API Routes for frontend integration (some protected, some public)
+app.use('/api', apiRoutes);
+
+// Health check endpoint (public)
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'baphomet-server' });
+});
+
+// CORS preflight handling for all routes
+app.options('*', cors(corsOptions));
+
+// Handle SPA routing for frontend - don't redirect, return JSON with frontend URL
+app.get('*', (req, res) => {
+  // For API requests that don't exist, return 404
+  if (req.path.startsWith('/api/') || req.path.startsWith('/graphql')) {
+    return res.status(404).json({
+      error: 'API endpoint not found',
+      path: req.path,
+      availableEndpoints: ['/health', '/api/health', '/graphql']
+    });
+  }
+
+  // For frontend routes, return info about where the frontend is hosted
+  const frontendUrl = process.env.BAPHOMET_UI_URL || 'https://collinlucke.com';
+  res.json({
+    message: 'Frontend is hosted separately',
+    frontendUrl: frontendUrl,
+    requestedPath: req.path,
+    fullUrl: `${frontendUrl}${req.path}`
+  });
 });
 
 // Serve HTTP on the port provided by Render or default to 5050
