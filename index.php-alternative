@@ -1,0 +1,27 @@
+<?php
+// Alternative solution for SPA routing when .htaccess doesn't work
+// This file should be named "index.php" and placed in your web root
+
+$request_uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// List of actual files/directories that should be served directly
+$static_extensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.woff', '.woff2', '.ttf', '.eot', '.json'];
+
+// Check if it's a static file
+foreach ($static_extensions as $ext) {
+    if (substr($path, -strlen($ext)) === $ext) {
+        // Let Apache handle static files normally
+        return false;
+    }
+}
+
+// Check if the requested path is an actual file or directory
+if (file_exists(__DIR__ . $path) && !is_dir(__DIR__ . $path)) {
+    return false;
+}
+
+// For all other routes, serve the React app
+header('Content-Type: text/html; charset=UTF-8');
+readfile(__DIR__ . '/index.html');
+?>

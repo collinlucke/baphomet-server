@@ -1,0 +1,17 @@
+# Simple SPA rewrite rules for Ionos
+RewriteEngine On
+
+# Handle client-side routing - send everything to index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+# Alternative syntax that might work better on some Apache configurations
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteBase /
+#   RewriteRule ^index\.html$ - [L]
+#   RewriteCond %{REQUEST_FILENAME} !-f
+#   RewriteCond %{REQUEST_FILENAME} !-d
+#   RewriteRule . /index.html [L]
+# </IfModule>

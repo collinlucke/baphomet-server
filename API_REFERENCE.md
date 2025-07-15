@@ -153,3 +153,74 @@ The following features were removed as they were not used by the frontend:
 - Separate public/protected GraphQL endpoints
 
 The API now provides only the essential functionality required by the frontend application.
+
+## Troubleshooting
+
+### SPA Routing Issues (404 on Direct URL Access)
+
+If you get 404 errors when accessing frontend routes directly (e.g., `https://yourdomain.com/login`), this means your hosting provider isn't configured to handle Single Page Application (SPA) routing.
+
+**For Apache hosting (like Ionos) - Try these solutions in order:**
+
+**Solution 1: Simple .htaccess file**
+Create a `.htaccess` file in your React app's `/public` folder (this gets deployed with your build):
+
+```apache
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+**Important:** Place the `.htaccess` file in your React project's `/public` directory, not in the root of your source code. When you build your React app, this file will be copied to the build output and deployed to your hosting provider.
+
+**Solution 2: If .htaccess doesn't work, use PHP fallback**
+If Ionos doesn't support .htaccess rewrite rules, you can create an `index.php` file in your React project's `/public` folder and rename your `index.html` to `index.html.bak`:
+
+```php
+<?php
+$request_uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Static file extensions
+$static_extensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.woff', '.woff2', '.ttf', '.eot', '.json'];
+
+foreach ($static_extensions as $ext) {
+    if (substr($path, -strlen($ext)) === $ext) {
+        return false;
+    }
+}
+
+if (file_exists(__DIR__ . $path) && !is_dir(__DIR__ . $path)) {
+    return false;
+}
+
+header('Content-Type: text/html; charset=UTF-8');
+readfile(__DIR__ . '/index.html.bak');
+?>
+```
+
+**Solution 3: Contact Ionos Support**
+If neither solution works, contact Ionos support to:
+- Enable mod_rewrite for your domain
+- Confirm .htaccess files are allowed
+- Ask about SPA routing configuration options
+
+**For other hosting providers:**
+
+**Nginx:**
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
+}
+```
+
+**Netlify/Vercel:**
+Create a `_redirects` file:
+```
+/*    /index.html   200
+```
+
+This ensures that all frontend routes serve the main `index.html` file, allowing React Router to handle the routing client-side.
+
+## Related Projects

@@ -29,7 +29,9 @@ const corsOptions = {
   origin: [
     'http://localhost:3000', // Local development
     'http://localhost:5173', // Vite dev server
-    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Your Ionos frontend URL
+    'https://baphomet.collinlucke.com', // Your custom domain
+    'https://home-5018222688.app-ionos.space', // Ionos subdomain
+    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Fallback
   ]
 };
 app.use(cors(corsOptions));
