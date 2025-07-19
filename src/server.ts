@@ -29,8 +29,9 @@ const corsOptions = {
   origin: [
     'http://localhost:3000', // Local development
     'http://localhost:5173', // Vite dev server
-    'https://baphomet-ui.onrender.com', // Render deployment
-    'https://baphomet.collinlucke.com', // Custom domain (if you add it later)
+    'https://baphomet.collinlucke.com', // GitHub Pages (primary)
+    'https://collinlucke.github.io', // GitHub Pages (fallback)
+    'https://baphomet-ui.onrender.com', // Render deployment (backup)
     'https://home-5018222688.app-ionos.space', // Old Ionos subdomain (temporary)
     process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Fallback
   ]
