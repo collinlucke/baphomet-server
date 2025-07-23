@@ -27,6 +27,12 @@ type Mutation {
   
   # User operations - used by frontend
   login(email: String!, password: String!): AuthToken
+  signup(
+    username: String!
+    email: String!
+    password: String!
+    displayName: String
+  ): AuthToken
 }
 
 type Movie {
@@ -48,6 +54,18 @@ type MoviesResult {
 
 type AuthToken {
   token: String!
+  user: User!
+}
+
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  displayName: String
+  totalVotes: Int!
+  joinDate: String!
+  role: String!
+  emailVerified: Boolean!
 }
 
 type CheckAuth {

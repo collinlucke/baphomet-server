@@ -146,16 +146,98 @@ const resolvers = {
       });
 
       if (!user) {
-        throw new Error('User does not exist.');
+        throw new Error('This email address and password combination doesn\'t exist.');
       }
 
-      const valid = await bcrypt.compare(password, user.password);
+      const valid = await bcrypt.compare(password, user.passwordHash || user.password);
 
       if (!valid) {
-        throw new Error('Invalid password.');
+        throw new Error('This email address and password combination doesn\'t exist.');
       }
+
+      // Update last login
+      await collection.updateOne(
+        { _id: user._id },
+        { 
+          $set: { 
+            lastLogin: new Date(),
+            updatedAt: new Date()
+          }
+        }
+      );
+
       return {
-        token: generateToken({ id: user._id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, '1h')
+        token: generateToken({ id: user._id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, '1h'),
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          displayName: user.displayName,
+          totalVotes: user.totalVotes || 0,
+          joinDate: (user.joinDate || user.createdAt).toISOString(),
+          role: user.role || 'user',
+          emailVerified: user.emailVerified || false
+        }
+      };
+    },
+    async signup(_, { username, email, password, displayName }) {
+      // Public operation - no authentication required
+      let collection = db.collection('users');
+      
+      // Check if user already exists
+      const existingUser = await collection.findOne({
+        $or: [{ email }, { username }]
+      });
+
+      if (existingUser) {
+        if (existingUser.email === email) {
+          throw new Error('An account with this email already exists.');
+        }
+        if (existingUser.username === username) {
+          throw new Error('This username is already taken.');
+        }
+      }
+
+      // Hash password
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(password, saltRounds);
+
+      // Create new user
+      const newUser = {
+        username,
+        email,
+        passwordHash,
+        role: 'user',
+        totalVotes: 0,
+        joinDate: new Date(),
+        lastLogin: new Date(),
+        isActive: true,
+        displayName: displayName || username,
+        emailVerified: false,
+        verificationToken: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const result = await collection.insertOne(newUser);
+
+      if (!result.acknowledged) {
+        throw new Error('Failed to create user account.');
+      }
+
+      // Return token and user info
+      return {
+        token: generateToken({ id: result.insertedId, email }, process.env.ACCESS_TOKEN_SECRET, '1h'),
+        user: {
+          id: result.insertedId,
+          username,
+          email,
+          displayName: displayName || username,
+          totalVotes: 0,
+          joinDate: newUser.joinDate.toISOString(),
+          role: 'user',
+          emailVerified: false
+        }
       };
     }
   }

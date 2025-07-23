@@ -15,8 +15,6 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
-import { authenticateToken } from './authenticateToken.js';
-import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -28,12 +26,10 @@ const corsOptions = {
   credentials: true,
   origin: [
     'http://localhost:3000', // Local development
-    'http://localhost:5173', // Vite dev server
-    'https://baphomet.collinlucke.com', // GitHub Pages (primary)
-    'https://collinlucke.github.io', // GitHub Pages (fallback)
-    'https://baphomet-ui.onrender.com', // Render deployment (backup)
-    'https://home-5018222688.app-ionos.space', // Old Ionos subdomain (temporary)
-    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Fallback
+    'http://localhost:5173', // Vite dev server (default)
+    'http://localhost:5174', // Vite dev server (alternative)
+    'http://localhost:5175', // Vite dev server (alternative)
+    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Your Render frontend URL
   ]
 };
 app.use(cors(corsOptions));
@@ -72,8 +68,8 @@ app.use(
 
 // Health check endpoint for monitoring and deployment
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     service: 'baphomet-server',
     timestamp: new Date().toISOString(),
     graphql: '/graphql'
