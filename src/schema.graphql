@@ -60,6 +60,7 @@ type Mutation {
 type Movie {
   id: ID
   title: String
+  rated: String
   releaseDate: String
   overview: String
   genres: [String]
@@ -77,7 +78,7 @@ type Movie {
 }
 
 type MoviesResult {
-  newMovies: [Movie]
+  searchResults: [Movie]
   newTotalMovieCount: Int
   newCursor: String
   loadAction: String,

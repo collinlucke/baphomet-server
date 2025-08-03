@@ -8,12 +8,14 @@ const resolvers = {
   Movie: {
     id: parent => parent.id ?? parent._id
   },
+
   Query: {
     async getMovie(_, { id }) {
       let collection = db.collection('movies');
       let query = { _id: new ObjectId(id.toString()) };
       return await collection.findOne(query);
     },
+
     async getAllMovies(
       _,
       { limit = 20, searchTerm = '', cursor = '', loadAction = 'scroll' }
@@ -32,7 +34,7 @@ const resolvers = {
         title: new RegExp(searchTerm, 'i')
       });
 
-      const newMovies = await collection
+      const searchResults = await collection
         .aggregate([
           { $match: baseQuery },
           { $sort: { title: 1 } },
@@ -40,11 +42,11 @@ const resolvers = {
         ])
         .toArray();
 
-      const endOfResults = newMovies.length < limit;
+      const endOfResults = searchResults.length < limit;
 
-      if (!newMovies.length) {
+      if (!searchResults.length) {
         return {
-          newMovies: [],
+          searchResults: [],
           newTotalMovieCount: 0,
           newCursor: '',
           loadAction,
@@ -53,13 +55,14 @@ const resolvers = {
       }
 
       return {
-        newMovies,
+        searchResults,
         newTotalMovieCount,
-        newCursor: newMovies[newMovies.length - 1].title || '',
+        newCursor: searchResults[searchResults.length - 1].title || '',
         loadAction,
         endOfResults
       };
     },
+
     async checkAuth(_, args) {
       const token = args.token;
       try {

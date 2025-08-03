@@ -22,7 +22,7 @@ Authorization: Bearer <your-jwt-token>
 ```graphql
 query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String, $loadAction: String) {
   getAllMovies(limit: $limit, searchTerm: $searchTerm, cursor: $cursor, loadAction: $loadAction) {
-    newMovies {
+    searchResults {
       id
       title
       releaseDate

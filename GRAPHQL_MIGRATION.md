@@ -38,7 +38,7 @@ query GetConfig {
 # Get all movies (public viewing)
 query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String, $loadAction: String) {
   getAllMovies(limit: $limit, searchTerm: $searchTerm, cursor: $cursor, loadAction: $loadAction) {
-    newMovies {
+    searchResults {
       id
       title
       releaseDate
@@ -174,7 +174,7 @@ mutation UpdateUserProfile($email: String, $currentPassword: String, $newPasswor
 const GET_ALL_MOVIES = gql`
   query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String) {
     getAllMovies(limit: $limit, searchTerm: $searchTerm, cursor: $cursor) {
-      newMovies {
+      searchResults {
         id
         title
         poster
