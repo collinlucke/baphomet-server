@@ -3,6 +3,8 @@ schema {
   mutation: Mutation
 }
 
+scalar DateTime
+
 type Query {
   # Movie operations - used by frontend
   getMovie(id: ID!): Movie
@@ -14,19 +16,39 @@ type Query {
 
 type Mutation {
   # Movie operations - used by frontend
-  addMovie(title: String!, releaseDate: String, rated: String, poster: String, fullplot: String): Movie
+  addMovie(
+    title: String!
+    releaseDate: String
+    overview: String
+    genres: [String]
+    revenue: String
+    posterUrl: String
+    backdropUrl: String
+    tmdbId: String
+    addedBy: ID
+    lastUpdated: DateTime
+    createdAt: DateTime
+    totalWins: Int
+    totalLosses: Int
+    winningPercentage: Float
+    totalComparisons: Int
+  ): Movie
+
   updateMovie(
     id: ID!
     title: String
     releaseDate: String
-    rated: String
-    poster: String
-    fullplot: String
+    posterUrl: String
+    backdropUrl: String
+    tmdbId: String
+    overview: String
   ): Movie
+
   deleteMovie(id: ID!): Boolean
   
   # User operations - used by frontend
   login(email: String!, password: String!): AuthToken
+  
   signup(
     username: String!
     email: String!
@@ -39,9 +61,19 @@ type Movie {
   id: ID
   title: String
   releaseDate: String
-  rated: String
-  poster: String
-  fullplot: String
+  overview: String
+  genres: [String]
+  revenue: String
+  posterUrl: String
+  backdropUrl: String
+  tmdbId: String
+  addedBy: ID
+  lastUpdated: DateTime
+  createdAt: DateTime
+  totalWins: Int
+  totalLosses: Int
+  winningPercentage: Float
+  totalComparisons: Int
 }
 
 type MoviesResult {

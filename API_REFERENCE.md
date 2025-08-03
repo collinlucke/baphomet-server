@@ -28,7 +28,7 @@ query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String, $loadActio
       releaseDate
       rated
       poster
-      fullplot
+      overview
     }
     newTotalMovieCount
     newCursor
@@ -48,7 +48,7 @@ query GetMovie($id: ID!) {
     releaseDate
     rated
     poster
-    fullplot
+    overview
   }
 }
 ```
@@ -79,14 +79,14 @@ mutation Login($email: String!, $password: String!) {
 
 #### 2. Add Movie (Authenticated)
 ```graphql
-mutation AddMovie($title: String!, $releaseDate: String, $rated: String, $poster: String, $fullplot: String) {
-  addMovie(title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, fullplot: $fullplot) {
+mutation AddMovie($title: String!, $releaseDate: String, $rated: String, $poster: String, $overview: String) {
+  addMovie(title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, overview: $overview) {
     id
     title
     releaseDate
     rated
     poster
-    fullplot
+    overview
   }
 }
 ```
@@ -94,14 +94,14 @@ mutation AddMovie($title: String!, $releaseDate: String, $rated: String, $poster
 
 #### 3. Update Movie (Authenticated)
 ```graphql
-mutation UpdateMovie($id: ID!, $title: String, $releaseDate: String, $rated: String, $poster: String, $fullplot: String) {
-  updateMovie(id: $id, title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, fullplot: $fullplot) {
+mutation UpdateMovie($id: ID!, $title: String, $releaseDate: String, $rated: String, $poster: String, $overview: String) {
+  updateMovie(id: $id, title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, overview: $overview) {
     id
     title
     releaseDate
     rated
     poster
-    fullplot
+    overview
   }
 }
 ```

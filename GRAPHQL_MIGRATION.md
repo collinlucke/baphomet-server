@@ -44,7 +44,7 @@ query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String, $loadActio
       releaseDate
       rated
       poster
-      fullplot
+      overview
     }
     newTotalMovieCount
     newCursor
@@ -61,7 +61,7 @@ query GetMovie($id: ID!) {
     releaseDate
     rated
     poster
-    fullplot
+    overview
   }
 }
 
@@ -127,26 +127,26 @@ query GetUserProfile {
 ### Mutations
 ```graphql
 # Add new movie
-mutation AddMovie($title: String!, $releaseDate: String, $rated: String, $poster: String, $fullplot: String) {
-  addMovie(title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, fullplot: $fullplot) {
+mutation AddMovie($title: String!, $releaseDate: String, $rated: String, $poster: String, $overview: String) {
+  addMovie(title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, overview: $overview) {
     id
     title
     releaseDate
     rated
     poster
-    fullplot
+    overview
   }
 }
 
 # Update existing movie
-mutation UpdateMovie($id: ID!, $title: String, $releaseDate: String, $rated: String, $poster: String, $fullplot: String) {
-  updateMovie(id: $id, title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, fullplot: $fullplot) {
+mutation UpdateMovie($id: ID!, $title: String, $releaseDate: String, $rated: String, $poster: String, $overview: String) {
+  updateMovie(id: $id, title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, overview: $overview) {
     id
     title
     releaseDate
     rated
     poster
-    fullplot
+    overview
   }
 }
 
@@ -198,7 +198,7 @@ const GET_MOVIE = gql`
       releaseDate
       rated
       poster
-      fullplot
+      overview
     }
   }
 `;
@@ -208,14 +208,14 @@ const GET_MOVIE = gql`
 **Requires Authentication**: Use `/graphql` endpoint
 ```javascript
 const UPDATE_MOVIE = gql`
-  mutation UpdateMovie($id: ID!, $title: String, $releaseDate: String, $rated: String, $poster: String, $fullplot: String) {
-    updateMovie(id: $id, title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, fullplot: $fullplot) {
+  mutation UpdateMovie($id: ID!, $title: String, $releaseDate: String, $rated: String, $poster: String, $overview: String) {
+    updateMovie(id: $id, title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, overview: $overview) {
       id
       title
       releaseDate
       rated
       poster
-      fullplot
+      overview
     }
   }
 `;
@@ -225,8 +225,8 @@ const UPDATE_MOVIE = gql`
 **Requires Authentication**: Use `/graphql` endpoint
 ```javascript
 const ADD_MOVIE = gql`
-  mutation AddMovie($title: String!, $releaseDate: String, $rated: String, $poster: String, $fullplot: String) {
-    addMovie(title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, fullplot: $fullplot) {
+  mutation AddMovie($title: String!, $releaseDate: String, $rated: String, $poster: String, $overview: String) {
+    addMovie(title: $title, releaseDate: $releaseDate, rated: $rated, poster: $poster, overview: $overview) {
       id
       title
     }

@@ -23,12 +23,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const corsOptions = {
-  credentials: true,
+  credentials: 'include',
   origin: [
     'http://localhost:3000', // Local development
-    'http://localhost:5173', // Vite dev server (default)
-    'http://localhost:5174', // Vite dev server (alternative)
-    'http://localhost:5175', // Vite dev server (alternative)
+    'http://localhost:5173', // Vite dev server (default),
+    'http://192.168.1.112:5173', // Local network access
     process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Your Render frontend URL
   ]
 };
@@ -56,7 +55,7 @@ await server.start();
 // Main GraphQL endpoint - handles both public and authenticated operations
 app.use(
   '/graphql',
-  cors(),
+  cors(corsOptions), // Apply CORS to the GraphQL endpoint
   express.json(),
   expressMiddleware(server, {
     context: async ({ req }) => {

@@ -10,7 +10,7 @@ const resolvers = {
   },
   Query: {
     async getMovie(_, { id }) {
-      let collection = db.collection('devMovies');
+      let collection = db.collection('movies');
       let query = { _id: new ObjectId(id.toString()) };
       return await collection.findOne(query);
     },
@@ -18,7 +18,7 @@ const resolvers = {
       _,
       { limit = 20, searchTerm = '', cursor = '', loadAction = 'scroll' }
     ) {
-      let collection = db.collection('devMovies');
+      let collection = db.collection('movies');
       collection.createIndex({ title: 1 });
 
       const baseQuery = {
@@ -72,7 +72,27 @@ const resolvers = {
   },
 
   Mutation: {
-    async addMovie(_, { title, releaseDate, rated, poster, fullplot }, context) {
+    async addMovie(
+      _,
+      {
+        title,
+        releaseDate,
+        overview,
+        genres,
+        revenue,
+        posterUrl,
+        backdropUrl,
+        tmdbId,
+        addedBy,
+        lastUpdated,
+        createdAt,
+        totalWins,
+        totalLosses,
+        winningPercentage,
+        totalComparisons
+      },
+      context
+    ) {
       // This operation requires authentication
       const token = context.token;
       if (!token) {
@@ -80,21 +100,41 @@ const resolvers = {
       }
 
       try {
-        jwt.verify(token.replace('Bearer ', ''), process.env.ACCESS_TOKEN_SECRET);
+        jwt.verify(
+          token.replace('Bearer ', ''),
+          process.env.ACCESS_TOKEN_SECRET
+        );
       } catch (error) {
         throw new Error('Invalid authentication token');
       }
 
-      let collection = db.collection('devMovies');
-      const insert = await collection.insertOne({
+      let collection = db.collection('movies');
+      const movieData = {
         title,
         releaseDate,
-        rated,
-        poster,
-        fullplot
-      });
-      if (insert.acknowledged)
-        return { title, releaseDate, rated, poster, fullplot, id: insert.insertedId };
+        overview,
+        genres,
+        revenue,
+        posterUrl,
+        backdropUrl,
+        tmdbId,
+        addedBy,
+        lastUpdated: lastUpdated ? new Date(lastUpdated) : new Date(),
+        createdAt: createdAt ? new Date(createdAt) : new Date(),
+        totalWins: totalWins || 0,
+        totalLosses: totalLosses || 0,
+        winningPercentage: winningPercentage || 0.0,
+        totalComparisons: totalComparisons || 0
+      };
+
+      const insert = await collection.insertOne(movieData);
+
+      if (insert.acknowledged) {
+        return {
+          ...movieData,
+          id: insert.insertedId
+        };
+      }
       return null;
     },
     async updateMovie(_, args, context) {
@@ -105,14 +145,17 @@ const resolvers = {
       }
 
       try {
-        jwt.verify(token.replace('Bearer ', ''), process.env.ACCESS_TOKEN_SECRET);
+        jwt.verify(
+          token.replace('Bearer ', ''),
+          process.env.ACCESS_TOKEN_SECRET
+        );
       } catch (error) {
         throw new Error('Invalid authentication token');
       }
 
       const id = new ObjectId(args.id);
       let query = { _id: new ObjectId(id) };
-      let collection = db.collection('devMovies');
+      let collection = db.collection('movies');
       const update = await collection.updateOne(query, { $set: { ...args } });
 
       if (update.acknowledged) return await collection.findOne(query);
@@ -127,12 +170,15 @@ const resolvers = {
       }
 
       try {
-        jwt.verify(token.replace('Bearer ', ''), process.env.ACCESS_TOKEN_SECRET);
+        jwt.verify(
+          token.replace('Bearer ', ''),
+          process.env.ACCESS_TOKEN_SECRET
+        );
       } catch (error) {
         throw new Error('Invalid authentication token');
       }
 
-      let collection = db.collection('devMovies');
+      let collection = db.collection('movies');
       const dbDelete = await collection.deleteOne({
         _id: new ObjectId(id)
       });
@@ -146,20 +192,27 @@ const resolvers = {
       });
 
       if (!user) {
-        throw new Error('This email address and password combination doesn\'t exist.');
+        throw new Error(
+          "This email address and password combination doesn't exist."
+        );
       }
 
-      const valid = await bcrypt.compare(password, user.passwordHash || user.password);
+      const valid = await bcrypt.compare(
+        password,
+        user.passwordHash || user.password
+      );
 
       if (!valid) {
-        throw new Error('This email address and password combination doesn\'t exist.');
+        throw new Error(
+          "This email address and password combination doesn't exist."
+        );
       }
 
       // Update last login
       await collection.updateOne(
         { _id: user._id },
-        { 
-          $set: { 
+        {
+          $set: {
             lastLogin: new Date(),
             updatedAt: new Date()
           }
@@ -167,7 +220,11 @@ const resolvers = {
       );
 
       return {
-        token: generateToken({ id: user._id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, '1h'),
+        token: generateToken(
+          { id: user._id, email: user.email },
+          process.env.ACCESS_TOKEN_SECRET,
+          '6h'
+        ),
         user: {
           id: user._id,
           username: user.username,
@@ -183,7 +240,7 @@ const resolvers = {
     async signup(_, { username, email, password, displayName }) {
       // Public operation - no authentication required
       let collection = db.collection('users');
-      
+
       // Check if user already exists
       const existingUser = await collection.findOne({
         $or: [{ email }, { username }]
@@ -227,7 +284,11 @@ const resolvers = {
 
       // Return token and user info
       return {
-        token: generateToken({ id: result.insertedId, email }, process.env.ACCESS_TOKEN_SECRET, '1h'),
+        token: generateToken(
+          { id: result.insertedId, email },
+          process.env.ACCESS_TOKEN_SECRET,
+          '6h'
+        ),
         user: {
           id: result.insertedId,
           username,
