@@ -28,6 +28,7 @@ const corsOptions = {
     'http://localhost:3000', // Local development
     'http://localhost:5173', // Vite dev server (default),
     'http://192.168.1.112:5173', // Local network access
+    'https://baphomet.collinlucke.com', // Render production URL
     'https://collinlucke.github.io', // GitHub Pages
     process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Your Render frontend URL
   ]
