@@ -25,8 +25,7 @@ const app = express();
 const corsOptions = {
   credentials: 'include',
   origin: [
-    'http://localhost:3000', // Local development
-    'http://localhost:5173', // Vite dev server (default),
+    'http://localhost:5173', // Local development - Vite dev server (default),
     'http://192.168.1.112:5173', // Local network access
     'https://baphomet.collinlucke.com', // Render production URL
     'https://collinlucke.github.io', // GitHub Pages
@@ -116,7 +115,7 @@ httpServer.on('error', (err: any) => {
   }
 });
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 GraphQL server running on port ${PORT}`);
   console.log(`📊 GraphQL endpoint: http://localhost:${PORT}/graphql`);
   console.log(`🔍 Health check: http://localhost:${PORT}/health`);
