@@ -22,17 +22,37 @@ const resolvers = {
     ) {
       let collection = db.collection('movies');
       collection.createIndex({ title: 1 });
+      collection.createIndex({ tmdbId: 1 });
+
+      // Create search conditions for both title and tmdbId
+      const searchConditions = [];
+      if (searchTerm) {
+        // Check if searchTerm is numeric (likely a TMDB ID)
+        const isNumeric = /^\d+$/.test(searchTerm);
+
+        if (isNumeric) {
+          console.log(
+            'what happens if the movie title is numeric?',
+            searchTerm
+          );
+          // Search by tmdbId (exact match for TMDB ID)
+          searchConditions.push({ tmdbId: searchTerm });
+        } else {
+          // Search by title (regex for text search)
+          searchConditions.push({ title: new RegExp(searchTerm, 'i') });
+        }
+      }
 
       const baseQuery = {
         $and: [
-          { title: new RegExp(searchTerm, 'i') },
+          searchConditions.length > 0 ? { $or: searchConditions } : {},
           { title: { $gt: cursor } }
-        ]
+        ].filter(condition => Object.keys(condition).length > 0)
       };
 
-      const newTotalMovieCount = await collection.countDocuments({
-        title: new RegExp(searchTerm, 'i')
-      });
+      const countQuery =
+        searchConditions.length > 0 ? { $or: searchConditions } : {};
+      const newTotalMovieCount = await collection.countDocuments(countQuery);
 
       const searchResults = await collection
         .aggregate([
@@ -222,11 +242,13 @@ const resolvers = {
         }
       );
 
+      const expiration = user.role === 'admin' ? '8h' : '2h';
+
       return {
         token: generateToken(
           { id: user._id, email: user.email },
           process.env.ACCESS_TOKEN_SECRET,
-          '6h'
+          expiration
         ),
         user: {
           id: user._id,
