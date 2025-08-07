@@ -8,7 +8,9 @@ scalar DateTime
 type Query {
   # Movie operations - used by frontend
   getMovie(id: ID!): Movie
-  getAllMovies(limit: Int, searchTerm: String, cursor: String, loadAction: String): MoviesResult
+  getAllMovies(limit: Int, searchTerm: String, tmdbId: String, cursor: String): MoviesResult
+  getMovieByTmdbId(tmdbId: String!, limit: Int, cursor: String): Movie
+  getMoviesByTitle(title: String, limit: Int, cursor: String): MoviesResult
   
   # Authentication operations - used by frontend
   checkAuth(token: String): CheckAuth
@@ -81,7 +83,6 @@ type MoviesResult {
   searchResults: [Movie]
   newTotalMovieCount: Int
   newCursor: String
-  loadAction: String,
   endOfResults: Boolean
 }
 

@@ -4,81 +4,78 @@ import { generateToken } from './generateToken.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+// Helper function for TMDB ID search
+
 const resolvers = {
   Movie: {
     id: parent => parent.id ?? parent._id
   },
 
   Query: {
-    async getMovie(_, { id }) {
-      let collection = db.collection('movies');
-      let query = { _id: new ObjectId(id.toString()) };
-      return await collection.findOne(query);
+    async getMovieByTmdbId(tmdbId) {
+      const collection = db.collection('movies');
+      const searchConditions = [{ tmdbId: tmdbId }];
+
+      const baseQuery = { $and: queryConditions };
+      const countQuery = { $or: searchConditions };
+
+      const theMovie = await collection.findOne({
+        tmdbId: tmdbId
+      });
+
+      if (!theMovie) {
+        return new Error('No movies found with the provided TMDB ID');
+      }
+
+      return theMovie;
     },
 
-    async getAllMovies(
-      _,
-      { limit = 20, searchTerm = '', cursor = '', loadAction = 'scroll' }
-    ) {
-      let collection = db.collection('movies');
-      collection.createIndex({ title: 1 });
-      collection.createIndex({ tmdbId: 1 });
+    async getMoviesByTitle(_, { title, limit, cursor }) {
+      const collection = db.collection('movies');
+      const parsedLimit = Number(limit) || 20;
+      const trimmedTitle = title?.trim();
 
-      // Create search conditions for both title and tmdbId
-      const searchConditions = [];
-      if (searchTerm) {
-        // Check if searchTerm is numeric (likely a TMDB ID)
-        const isNumeric = /^\d+$/.test(searchTerm);
+      console.log('getMoviesByTitle called with:', {
+        title: trimmedTitle,
+        limit: parsedLimit,
+        cursor
+      });
 
-        if (isNumeric) {
-          console.log(
-            'what happens if the movie title is numeric?',
-            searchTerm
-          );
-          // Search by tmdbId (exact match for TMDB ID)
-          searchConditions.push({ tmdbId: searchTerm });
-        } else {
-          // Search by title (regex for text search)
-          searchConditions.push({ title: new RegExp(searchTerm, 'i') });
-        }
+      // Build query conditions
+      const queryConditions = [];
+
+      // Add title search condition if title is provided
+      if (trimmedTitle) {
+        queryConditions.push({
+          title: { $regex: trimmedTitle, $options: 'i' }
+        });
       }
 
-      const baseQuery = {
-        $and: [
-          searchConditions.length > 0 ? { $or: searchConditions } : {},
-          { title: { $gt: cursor } }
-        ].filter(condition => Object.keys(condition).length > 0)
-      };
-
-      const countQuery =
-        searchConditions.length > 0 ? { $or: searchConditions } : {};
-      const newTotalMovieCount = await collection.countDocuments(countQuery);
-
-      const searchResults = await collection
-        .aggregate([
-          { $match: baseQuery },
-          { $sort: { title: 1 } },
-          { $limit: limit }
-        ])
-        .toArray();
-
-      const endOfResults = searchResults.length < limit;
-
-      if (!searchResults.length) {
-        return {
-          searchResults: [],
-          newTotalMovieCount: 0,
-          newCursor: '',
-          loadAction,
-          endOfResults
-        };
+      // Add cursor condition for pagination using title
+      if (cursor) {
+        queryConditions.push({ title: { $gt: cursor } });
       }
+
+      // Build final query
+      const query = queryConditions.length > 0 ? { $and: queryConditions } : {};
+
+      // Count query - only for title search, not cursor
+      const countQuery = trimmedTitle
+        ? { title: { $regex: trimmedTitle, $options: 'i' } }
+        : {};
+
+      const [searchResults, newTotalMovieCount] = await Promise.all([
+        collection.find(query).sort({ title: 1 }).limit(parsedLimit).toArray(),
+        collection.countDocuments(countQuery)
+      ]);
+
+      const endOfResults = searchResults.length < parsedLimit;
+      const newCursor = searchResults.at(-1)?.title || '';
 
       return {
         searchResults,
         newTotalMovieCount,
-        newCursor: searchResults[searchResults.length - 1].title || '',
-        loadAction,
+        newCursor,
         endOfResults
       };
     },

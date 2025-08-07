@@ -36,8 +36,8 @@ query GetConfig {
 }
 
 # Get all movies (public viewing)
-query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String, $loadAction: String) {
-  getAllMovies(limit: $limit, searchTerm: $searchTerm, cursor: $cursor, loadAction: $loadAction) {
+query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String) {
+  getAllMovies(limit: $limit, searchTerm: $searchTerm, cursor: $cursor) {
     searchResults {
       id
       title
@@ -48,7 +48,6 @@ query GetAllMovies($limit: Int, $searchTerm: String, $cursor: String, $loadActio
     }
     newTotalMovieCount
     newCursor
-    loadAction
     endOfResults
   }
 }
