@@ -12,6 +12,9 @@ type Query {
   getMovieByTmdbId(tmdbId: String!, limit: Int, cursor: String): Movie
   getMoviesByTitle(title: String, limit: Int, cursor: String): MoviesResult
   
+  # Arena operations - used by frontend
+  getRandomMovieMatchup: Matchup
+  
   # Authentication operations - used by frontend
   checkAuth(token: String): CheckAuth
 }
@@ -57,6 +60,12 @@ type Mutation {
     password: String!
     displayName: String
   ): AuthToken
+  
+  # Arena operations - used by frontend
+  submitVote(movie1Id: ID!, movie2Id: ID!, winnerId: ID!): VoteResult
+  
+  # Admin operations - admin only
+  cleanupVotes(userId: ID, movieId: ID, resetAll: Boolean): CleanupResult
 }
 
 type Movie {
@@ -105,4 +114,47 @@ type User {
 type CheckAuth {
   isValid: Boolean
   message: String
+}
+
+type Matchup {
+  movie1: Movie!
+  movie2: Movie!
+  comparisonId: ID
+}
+
+type Comparison {
+  id: ID!
+  movie1Id: ID!
+  movie2Id: ID!
+  movie1Wins: Int!
+  movie2Wins: Int!
+  totalVotes: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Vote {
+  id: ID!
+  userId: ID!
+  comparisonId: ID!
+  movie1Id: ID!
+  movie2Id: ID!
+  winnerId: ID!
+  timestamp: DateTime!
+  sessionId: String
+  userAgent: String
+}
+
+type VoteResult {
+  success: Boolean!
+  message: String
+  comparison: Comparison
+}
+
+type CleanupResult {
+  success: Boolean!
+  message: String
+  deletedVotes: Int
+  affectedUsers: Int
+  affectedMovies: Int
 }
