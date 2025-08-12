@@ -733,6 +733,30 @@ const resolvers = {
           affectedMovies: 0
         };
       }
+    },
+    submitFeedback: async (_, { email, comments, timestamp }) => {
+      const feedbackCollection = db.collection('feedback');
+      try {
+        const feedback = {
+          email,
+          comments,
+          timestamp
+        };
+        const result = await feedbackCollection.insertOne(feedback);
+        return {
+          success: true,
+          message: 'Feedback submitted successfully',
+          feedback: {
+            id: result.insertedId,
+            ...feedback
+          }
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: `Feedback submission failed: ${error.message}`
+        };
+      }
     }
   }
 };

@@ -66,6 +66,12 @@ type Mutation {
   
   # Admin operations - admin only
   cleanupVotes(userId: ID, movieId: ID, resetAll: Boolean): CleanupResult
+
+  submitFeedback(
+    email: String
+    comments: String!
+    timestamp: DateTime!
+  ): FeedbackResult
 }
 
 type Movie {
@@ -145,6 +151,13 @@ type Vote {
   userAgent: String
 }
 
+type Feedback {
+  id: ID!
+  email: String
+  comments: String!
+  timestamp: DateTime!
+}
+
 type VoteResult {
   success: Boolean!
   message: String
@@ -157,4 +170,10 @@ type CleanupResult {
   deletedVotes: Int
   affectedUsers: Int
   affectedMovies: Int
+}
+
+type FeedbackResult {
+  success: Boolean!
+  message: String
+  feedback: Feedback
 }
