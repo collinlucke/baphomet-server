@@ -17,20 +17,9 @@
  *   node scripts/cleanup-votes.js --reset-all
  *   node scripts/cleanup-votes.js --reset-all --confirm
  */
-
-import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb';
+import { db, client } from '../src/dBConnection.js';
+import { ObjectId } from 'mongodb';
 import 'dotenv/config';
-
-const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_DB_PASSWORD}@${process.env.ATLAS_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
-const databaseName = 'baphy';
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: false,
-    deprecationErrors: true
-  }
-});
 
 const args = process.argv.slice(2);
 const getArg = name => {
@@ -80,7 +69,6 @@ Note: Always backup your database before running destructive operations!
 async function removeUserVotes(userId) {
   console.log(`🔍 Removing all votes for user: ${userId}`);
 
-  const db = client.db(databaseName);
   const votesCollection = db.collection('votes');
   const usersCollection = db.collection('users');
 
@@ -120,7 +108,6 @@ async function removeUserVotes(userId) {
 async function removeMovieVotes(movieId) {
   console.log(`🔍 Removing all votes for movie: ${movieId}`);
 
-  const db = client.db(databaseName);
   const votesCollection = db.collection('votes');
   const moviesCollection = db.collection('movies');
 
@@ -183,7 +170,6 @@ async function removeUserMovieVotes(userId, movieId) {
     `🔍 Removing votes for user ${userId} involving movie ${movieId}`
   );
 
-  const db = client.db(databaseName);
   const votesCollection = db.collection('votes');
 
   try {
@@ -230,7 +216,6 @@ async function resetAllVotingData() {
 
   console.log('🚨 PERFORMING COMPLETE VOTING DATA RESET...');
 
-  const db = client.db(databaseName);
   const votesCollection = db.collection('votes');
   const comparisonsCollection = db.collection('comparisons');
   const moviesCollection = db.collection('movies');
@@ -307,10 +292,6 @@ async function main() {
   }
 
   try {
-    console.log('🔄 Connecting to MongoDB...');
-    await client.connect();
-    console.log('✅ Connected successfully!');
-
     if (resetAll) {
       await resetAllVotingData();
     } else if (userId && movieId) {

@@ -11,20 +11,7 @@
 
 // It's served it's current purpose
 // Keeping it around in case of future needs
-
-import { MongoClient, ServerApiVersion } from 'mongodb';
-import 'dotenv/config';
-
-const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_DB_PASSWORD}@${process.env.ATLAS_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
-const databaseName = 'baphy';
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: false,
-    deprecationErrors: true
-  }
-});
+import { db, client } from '../src/dBConnection.js';
 
 async function updateMovieUrls() {
   const isDryRun = process.argv.includes('--dry-run');
@@ -34,7 +21,6 @@ async function updateMovieUrls() {
     await client.connect();
     console.log('✅ Connected successfully!');
 
-    const db = client.db(databaseName);
     const moviesCollection = db.collection('movies');
 
     console.log('🔍 Finding movies with TMDB URLs...');

@@ -1,7 +1,6 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import 'dotenv/config';
 
-// Debug environment variables
 console.log('🔍 MongoDB Environment Variables:');
 console.log(
   'ATLAS_DB_USERNAME:',
@@ -38,7 +37,6 @@ const client = new MongoClient(uri, {
 
 try {
   await client.connect();
-  await client.db('admin').command({ ping: 1 });
 
   console.log('✅ Successfully connected to MongoDB!');
 } catch (err) {
@@ -48,4 +46,4 @@ try {
 
 let db = client.db(databaseName);
 
-export default db;
+export { db, client, databaseName };

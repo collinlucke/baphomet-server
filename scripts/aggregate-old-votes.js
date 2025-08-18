@@ -4,6 +4,8 @@
 
 // Not sure what I'm do here yet, but this is a start
 
+import { db } from '../src/dBConnection.js';
+
 const aggregateOldVotes = async () => {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - 90);

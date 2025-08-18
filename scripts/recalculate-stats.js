@@ -1,33 +1,8 @@
 #!/usr/bin/env node
 
-/**
- * Recalculate Movie Statistics Script
- *
- * This script recalculates all movie statistics based on current voting data.
- * Useful after partial vote cleanup or data inconsistencies.
- *
- * Usage:
- *   node scripts/recalculate-stats.js
- *   node scripts/recalculate-stats.js --movie-id="MOVIE_ID"
- *   node scripts/recalculate-stats.js --dry-run
- */
+import { db, client } from '../src/dBConnection.js';
+import { ObjectId } from 'mongodb';
 
-import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb';
-import 'dotenv/config';
-
-// MongoDB connection
-const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_DB_PASSWORD}@${process.env.ATLAS_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
-const databaseName = 'baphy';
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: false,
-    deprecationErrors: true
-  }
-});
-
-// Parse command line arguments
 const args = process.argv.slice(2);
 const getArg = name => {
   const arg = args.find(arg => arg.startsWith(`--${name}=`));
@@ -39,7 +14,6 @@ const movieId = getArg('movie-id');
 const isDryRun = hasFlag('dry-run');
 
 async function recalculateMovieStats(specificMovieId = null) {
-  const db = client.db(databaseName);
   const moviesCollection = db.collection('movies');
   const votesCollection = db.collection('votes');
   const comparisonsCollection = db.collection('comparisons');
@@ -51,7 +25,6 @@ async function recalculateMovieStats(specificMovieId = null) {
   );
 
   try {
-    // Get movies to process
     const movieQuery = specificMovieId
       ? { _id: new ObjectId(specificMovieId) }
       : {};
@@ -67,12 +40,10 @@ async function recalculateMovieStats(specificMovieId = null) {
     for (const movie of movies) {
       console.log(`\n🎬 Processing: "${movie.title}"`);
 
-      // Count total wins (when this movie was chosen as winner)
       const totalWins = await votesCollection.countDocuments({
         winnerId: movie._id
       });
 
-      // Count total losses (when this movie was an option but not chosen)
       const totalAppearances = await votesCollection.countDocuments({
         $or: [{ movie1Id: movie._id }, { movie2Id: movie._id }]
       });
@@ -124,12 +95,10 @@ async function recalculateMovieStats(specificMovieId = null) {
       }
     }
 
-    // Recalculate comparison statistics
     console.log('\n🔄 Recalculating comparison statistics...');
     const comparisons = await comparisonsCollection.find({}).toArray();
 
     for (const comparison of comparisons) {
-      // Count votes for movie1 vs movie2
       const movie1Wins = await votesCollection.countDocuments({
         comparisonId: comparison._id,
         winnerId: comparison.movie1Id
@@ -168,7 +137,6 @@ async function recalculateMovieStats(specificMovieId = null) {
       }
     }
 
-    // Recalculate user vote counts
     console.log('\n🔄 Recalculating user vote counts...');
     const usersCollection = db.collection('users');
     const users = await usersCollection.find({}).toArray();
@@ -226,7 +194,6 @@ async function main() {
   }
 }
 
-// Run the script
 main()
   .then(() => process.exit(0))
   .catch(() => process.exit(1));

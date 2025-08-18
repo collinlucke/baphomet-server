@@ -1,4 +1,4 @@
-import db from './dBConnection.js';
+import { db } from './dBConnection.js';
 import { ObjectId } from 'mongodb';
 import { generateToken } from './generateToken.js';
 import bcrypt from 'bcryptjs';
