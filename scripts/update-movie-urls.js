@@ -9,10 +9,12 @@
  *   node scripts/update-movie-urls.js --dry-run # Preview changes only
  */
 
+// It's served it's current purpose
+// Keeping it around in case of future needs
+
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import 'dotenv/config';
 
-// MongoDB connection (same as your dBConnection.js)
 const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_DB_PASSWORD}@${process.env.ATLAS_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
 const databaseName = 'baphy';
 
@@ -102,7 +104,6 @@ async function updateMovieUrls() {
       return;
     }
 
-    // Show first few examples
     console.log('\n📋 Example changes:');
     updates.slice(0, 3).forEach((update, index) => {
       console.log(`\n${index + 1}. "${update.movie.title}"`);
@@ -155,7 +156,6 @@ async function updateMovieUrls() {
   }
 }
 
-// Run the script
 updateMovieUrls()
   .then(() => process.exit(0))
   .catch(() => process.exit(1));

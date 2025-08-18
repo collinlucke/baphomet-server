@@ -10,7 +10,8 @@ type Query {
   getMovie(id: ID!): Movie
   getAllMovies(limit: Int, searchTerm: String, tmdbId: String, cursor: String): MoviesResult
   getMovieByTmdbId(tmdbId: String!, limit: Int, cursor: String): Movie
-  getMoviesByTitle(title: String, limit: Int, cursor: String): MoviesResult
+  getMoviesByTitle(title: String, limit: Int, cursor: String, sortBy: String, sortOrder: String): MoviesResult
+  getRandomBackdropImage: BackdropImage
   
   # Arena operations - used by frontend
   getRandomMovieMatchup: Matchup
@@ -176,4 +177,8 @@ type FeedbackResult {
   success: Boolean!
   message: String
   feedback: Feedback
+}
+
+type BackdropImage {
+  backdropUrl: String!
 }

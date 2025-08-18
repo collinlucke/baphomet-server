@@ -25,11 +25,11 @@ const app = express();
 const corsOptions = {
   credentials: 'include',
   origin: [
-    'http://localhost:5173', // Local development - Vite dev server (default),
-    'http://192.168.1.112:5173', // Local network access
-    'https://baphomet.collinlucke.com', // Render production URL
-    'https://collinlucke.github.io', // GitHub Pages
-    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com' // Your Render frontend URL
+    'http://localhost:5173',
+    'http://192.168.1.112:5173',
+    'https://baphomet.collinlucke.com',
+    'https://collinlucke.github.io',
+    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com'
   ]
 };
 app.use(cors(corsOptions));
@@ -53,10 +53,9 @@ const server = new ApolloServer({
 
 await server.start();
 
-// Main GraphQL endpoint - handles both public and authenticated operations
 app.use(
   '/graphql',
-  cors(corsOptions), // Apply CORS to the GraphQL endpoint
+  cors(corsOptions),
   express.json(),
   expressMiddleware(server, {
     context: async ({ req }) => {
@@ -66,7 +65,6 @@ app.use(
   })
 );
 
-// Health check endpoint for monitoring and deployment
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -76,11 +74,9 @@ app.get('/health', (req, res) => {
   });
 });
 
-// CORS preflight handling
 app.options('*', cors(corsOptions));
-// Handle SPA routing for frontend - redirect unknown routes to frontend
+
 app.get('*', (req, res) => {
-  // For any unknown requests, provide info about the API
   const frontendUrl = process.env.BAPHOMET_UI_URL || 'https://collinlucke.com';
   res.json({
     message: 'Baphomet Server - GraphQL API',
@@ -92,12 +88,10 @@ app.get('*', (req, res) => {
   });
 });
 
-// Serve HTTP on the port provided by Render or default to 5050
 const PORT = parseInt(process.env.PORT || '5050');
 
 const httpServer = http.createServer(app);
 
-// Handle port already in use error
 httpServer.on('error', (err: any) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`❌ Port ${PORT} is already in use.`);
@@ -121,7 +115,6 @@ httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`🔍 Health check: http://localhost:${PORT}/health`);
 });
 
-// HTTPS is handled by Render automatically - only use local HTTPS if SSL certs are provided
 if (process.env.NODE_ENV === 'production' && process.env.SSL_PRIVATE_KEY) {
   const readCert = (envVar, filePath) => {
     if (process.env[envVar]) {

@@ -21,7 +21,6 @@
 import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb';
 import 'dotenv/config';
 
-// MongoDB connection
 const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_DB_PASSWORD}@${process.env.ATLAS_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
 const databaseName = 'baphy';
 
@@ -33,7 +32,6 @@ const client = new MongoClient(uri, {
   }
 });
 
-// Parse command line arguments
 const args = process.argv.slice(2);
 const getArg = name => {
   const arg = args.find(arg => arg.startsWith(`--${name}=`));
@@ -89,7 +87,6 @@ async function removeUserVotes(userId) {
   try {
     const userObjectId = new ObjectId(userId);
 
-    // Get vote count before deletion
     const voteCount = await votesCollection.countDocuments({
       userId: userObjectId
     });
@@ -101,12 +98,10 @@ async function removeUserVotes(userId) {
 
     console.log(`📊 Found ${voteCount} votes to remove`);
 
-    // Remove all votes for this user
     const deleteResult = await votesCollection.deleteMany({
       userId: userObjectId
     });
 
-    // Reset user's vote count
     await usersCollection.updateOne(
       { _id: userObjectId },
       { $set: { totalVotes: 0, updatedAt: new Date() } }
@@ -115,7 +110,6 @@ async function removeUserVotes(userId) {
     console.log(`✅ Removed ${deleteResult.deletedCount} votes`);
     console.log(`✅ Reset user's vote count to 0`);
 
-    // Note: This doesn't recalculate movie/comparison stats
     console.log('⚠️  Note: Movie and comparison statistics not recalculated');
     console.log('   Run --reset-all to fully recalculate all statistics');
   } catch (error) {
@@ -133,7 +127,6 @@ async function removeMovieVotes(movieId) {
   try {
     const movieObjectId = new ObjectId(movieId);
 
-    // Get the movie info
     const movie = await moviesCollection.findOne({ _id: movieObjectId });
     if (!movie) {
       console.log('❌ Movie not found');
@@ -142,7 +135,6 @@ async function removeMovieVotes(movieId) {
 
     console.log(`🎬 Movie: "${movie.title}"`);
 
-    // Count votes involving this movie (as winner or as one of the options)
     const voteCount = await votesCollection.countDocuments({
       $or: [
         { winnerId: movieObjectId },
@@ -158,7 +150,6 @@ async function removeMovieVotes(movieId) {
 
     console.log(`📊 Found ${voteCount} votes involving this movie`);
 
-    // Remove all votes involving this movie
     const deleteResult = await votesCollection.deleteMany({
       $or: [
         { winnerId: movieObjectId },
@@ -167,7 +158,6 @@ async function removeMovieVotes(movieId) {
       ]
     });
 
-    // Reset movie's statistics
     await moviesCollection.updateOne(
       { _id: movieObjectId },
       {
@@ -200,7 +190,6 @@ async function removeUserMovieVotes(userId, movieId) {
     const userObjectId = new ObjectId(userId);
     const movieObjectId = new ObjectId(movieId);
 
-    // Find votes by this user involving this movie
     const voteCount = await votesCollection.countDocuments({
       userId: userObjectId,
       $or: [
@@ -217,7 +206,6 @@ async function removeUserMovieVotes(userId, movieId) {
 
     console.log(`📊 Found ${voteCount} votes to remove`);
 
-    // Remove the votes
     const deleteResult = await votesCollection.deleteMany({
       userId: userObjectId,
       $or: [
@@ -249,7 +237,6 @@ async function resetAllVotingData() {
   const usersCollection = db.collection('users');
 
   try {
-    // Get counts before deletion
     const [voteCount, comparisonCount, movieCount, userCount] =
       await Promise.all([
         votesCollection.countDocuments(),
@@ -264,17 +251,14 @@ async function resetAllVotingData() {
     console.log(`   Movies: ${movieCount}`);
     console.log(`   Users: ${userCount}`);
 
-    // Delete all votes
     console.log('🗑️  Deleting all votes...');
     const votesDeleted = await votesCollection.deleteMany({});
     console.log(`✅ Deleted ${votesDeleted.deletedCount} votes`);
 
-    // Delete all comparisons
     console.log('🗑️  Deleting all comparisons...');
     const comparisonsDeleted = await comparisonsCollection.deleteMany({});
     console.log(`✅ Deleted ${comparisonsDeleted.deletedCount} comparisons`);
 
-    // Reset all movie statistics
     console.log('🔄 Resetting movie statistics...');
     const moviesReset = await moviesCollection.updateMany(
       {},
@@ -290,7 +274,6 @@ async function resetAllVotingData() {
     );
     console.log(`✅ Reset statistics for ${moviesReset.matchedCount} movies`);
 
-    // Reset all user vote counts
     console.log('🔄 Resetting user vote counts...');
     const usersReset = await usersCollection.updateMany(
       {},
@@ -345,7 +328,6 @@ async function main() {
   }
 }
 
-// Run the script
 main()
   .then(() => process.exit(0))
   .catch(() => process.exit(1));

@@ -181,7 +181,6 @@ If Ionos doesn't support .htaccess rewrite rules, you can create an `index.php` 
 $request_uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($request_uri, PHP_URL_PATH);
 
-// Static file extensions
 $static_extensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.woff', '.woff2', '.ttf', '.eot', '.json'];
 
 foreach ($static_extensions as $ext) {

@@ -4,8 +4,6 @@ import { generateToken } from './generateToken.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Helper function for TMDB ID search
-
 const resolvers = {
   Movie: {
     id: parent => parent.id ?? parent._id
@@ -38,42 +36,47 @@ const resolvers = {
       return theMovie;
     },
 
-    async getMoviesByTitle(_, { title, limit, cursor }) {
+    async getMoviesByTitle(
+      _,
+      { title, limit, cursor, sortBy = 'title', sortOrder = 'asc' }
+    ) {
       const collection = db.collection('movies');
       const parsedLimit = Number(limit) || 20;
       const trimmedTitle = title?.trim();
 
-      // Build query conditions
       const queryConditions = [];
 
-      // Add title search condition if title is provided
       if (trimmedTitle) {
         queryConditions.push({
           title: { $regex: trimmedTitle, $options: 'i' }
         });
       }
-
-      // Add cursor condition for pagination using title
       if (cursor) {
-        queryConditions.push({ title: { $gt: cursor } });
+        queryConditions.push({ [sortBy]: { $gt: cursor } });
       }
 
-      // Build final query
       const query = queryConditions.length > 0 ? { $and: queryConditions } : {};
 
-      // Count query - only for title search, not cursor
       const countQuery = trimmedTitle
         ? { title: { $regex: trimmedTitle, $options: 'i' } }
         : {};
 
+      const sortDirection = sortOrder === 'desc' ? -1 : 1;
+
+      const validSortFields = ['title', 'releaseDate', 'winningPercentage'];
+      const sortField = validSortFields.includes(sortBy) ? sortBy : 'title';
+
       const [searchResults, newTotalMovieCount] = await Promise.all([
-        collection.find(query).sort({ title: 1 }).limit(parsedLimit).toArray(),
+        collection
+          .find(query)
+          .sort({ [sortField]: sortDirection, title: 1 })
+          .limit(parsedLimit)
+          .toArray(),
         collection.countDocuments(countQuery)
       ]);
 
       const endOfResults = searchResults.length < parsedLimit;
-      const newCursor = searchResults.at(-1)?.title || '';
-
+      const newCursor = searchResults.at(-1)?.[sortField] || '';
       return {
         searchResults,
         newTotalMovieCount,
@@ -95,7 +98,6 @@ const resolvers = {
     async getRandomMovieMatchup(_, args, context) {
       const collection = db.collection('movies');
 
-      // Get total count of movies
       const totalMovies = await collection.countDocuments();
 
       if (totalMovies < 2) {
@@ -104,7 +106,6 @@ const resolvers = {
         );
       }
 
-      // Get two random movies using aggregation pipeline
       const randomMovies = await collection
         .aggregate([{ $sample: { size: 2 } }])
         .toArray();
@@ -115,7 +116,6 @@ const resolvers = {
 
       const [movie1, movie2] = randomMovies;
 
-      // Check if comparison already exists between these movies
       const comparisonsCollection = db.collection('comparisons');
       let comparison = await comparisonsCollection.findOne({
         $or: [
@@ -124,7 +124,6 @@ const resolvers = {
         ]
       });
 
-      // If no comparison exists, create one
       if (!comparison) {
         const newComparison = {
           movie1Id: movie1._id,
@@ -145,6 +144,23 @@ const resolvers = {
         movie2,
         comparisonId: comparison._id
       };
+    },
+
+    async getRandomBackdropImage(_, {}) {
+      const collection = db.collection('movies');
+      const getMovie = async () =>
+        await collection.aggregate([{ $sample: { size: 1 } }]).toArray();
+      const movie = await getMovie();
+
+      if (!movie) {
+        throw new Error('Movie not found');
+      }
+
+      if (!movie[0].backdropUrl) {
+        getMovie();
+      }
+
+      return { backdropUrl: movie[0].backdropUrl };
     }
   },
 
@@ -170,7 +186,6 @@ const resolvers = {
       },
       context
     ) {
-      // This operation requires authentication
       const token = context.token;
       if (!token) {
         throw new Error('Authentication required to add movies');
@@ -215,7 +230,6 @@ const resolvers = {
       return null;
     },
     async updateMovie(_, args, context) {
-      // This operation requires authentication
       const token = context.token;
       if (!token) {
         throw new Error('Authentication required to update movies');
@@ -240,7 +254,6 @@ const resolvers = {
       return null;
     },
     async deleteMovie(_, { id }, context) {
-      // This operation requires authentication
       const token = context.token;
       if (!token) {
         throw new Error('Authentication required to delete movies');
@@ -262,7 +275,6 @@ const resolvers = {
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
     },
     async login(_, { email, password }) {
-      // Public operation - no authentication required
       let collection = db.collection('users');
       const user = await collection.findOne({
         email
@@ -285,7 +297,6 @@ const resolvers = {
         );
       }
 
-      // Update last login
       await collection.updateOne(
         { _id: user._id },
         {
@@ -317,10 +328,8 @@ const resolvers = {
       };
     },
     async signup(_, { username, email, password, displayName }) {
-      // Public operation - no authentication required
       let collection = db.collection('users');
 
-      // Check if user already exists
       const existingUser = await collection.findOne({
         $or: [{ email }, { username }]
       });
@@ -334,11 +343,9 @@ const resolvers = {
         }
       }
 
-      // Hash password
       const saltRounds = 10;
       const passwordHash = await bcrypt.hash(password, saltRounds);
 
-      // Create new user
       const newUser = {
         username,
         email,
@@ -361,7 +368,6 @@ const resolvers = {
         throw new Error('Failed to create user account.');
       }
 
-      // Return token and user info
       return {
         token: generateToken(
           { id: result.insertedId, email },
@@ -382,7 +388,6 @@ const resolvers = {
     },
 
     async submitVote(_, { movie1Id, movie2Id, winnerId }, context) {
-      // This operation requires authentication
       const token = context.token;
       if (!token) {
         throw new Error('Authentication required to submit votes');
@@ -403,7 +408,6 @@ const resolvers = {
       const movie2ObjectId = new ObjectId(movie2Id);
       const winnerObjectId = new ObjectId(winnerId);
 
-      // Validate that winnerId is one of the two movies
       if (
         !winnerObjectId.equals(movie1ObjectId) &&
         !winnerObjectId.equals(movie2ObjectId)
@@ -416,7 +420,6 @@ const resolvers = {
       const comparisonsCollection = db.collection('comparisons');
       const votesCollection = db.collection('votes');
 
-      // Find or create comparison
       let comparison = await comparisonsCollection.findOne({
         $or: [
           { movie1Id: movie1ObjectId, movie2Id: movie2ObjectId },
@@ -425,7 +428,6 @@ const resolvers = {
       });
 
       if (!comparison) {
-        // Create new comparison
         const newComparison = {
           movie1Id: movie1ObjectId,
           movie2Id: movie2ObjectId,
@@ -440,7 +442,6 @@ const resolvers = {
         comparison = { ...newComparison, _id: result.insertedId };
       }
 
-      // Check if user has already voted on this comparison
       const existingVote = await votesCollection.findOne({
         userId: userId,
         comparisonId: comparison._id
@@ -454,7 +455,6 @@ const resolvers = {
         };
       }
 
-      // Create vote record
       const voteRecord = {
         userId: userId,
         comparisonId: comparison._id,
@@ -468,7 +468,6 @@ const resolvers = {
 
       await votesCollection.insertOne(voteRecord);
 
-      // Update comparison statistics
       const isMovie1Winner = winnerObjectId.equals(comparison.movie1Id);
       const updateFields = {
         totalVotes: comparison.totalVotes + 1,
@@ -486,14 +485,12 @@ const resolvers = {
         { $set: updateFields }
       );
 
-      // Update movie statistics
       const moviesCollection = db.collection('movies');
       const winner = winnerObjectId;
       const loser = winnerObjectId.equals(movie1ObjectId)
         ? movie2ObjectId
         : movie1ObjectId;
 
-      // Update winner stats
       await moviesCollection.updateOne(
         { _id: winner },
         {
@@ -504,7 +501,6 @@ const resolvers = {
         }
       );
 
-      // Update loser stats
       await moviesCollection.updateOne(
         { _id: loser },
         {
@@ -515,7 +511,6 @@ const resolvers = {
         }
       );
 
-      // Update winning percentages for both movies
       const [winnerMovie, loserMovie] = await Promise.all([
         moviesCollection.findOne({ _id: winner }),
         moviesCollection.findOne({ _id: loser })
@@ -545,7 +540,6 @@ const resolvers = {
         );
       }
 
-      // Update user's total vote count
       const usersCollection = db.collection('users');
       await usersCollection.updateOne(
         { _id: userId },
@@ -555,7 +549,6 @@ const resolvers = {
         }
       );
 
-      // Get updated comparison
       const updatedComparison = await comparisonsCollection.findOne({
         _id: comparison._id
       });
@@ -569,7 +562,6 @@ const resolvers = {
     },
 
     async cleanupVotes(_, { userId, movieId, resetAll }, context) {
-      // This operation requires admin authentication
       const token = context.token;
       if (!token) {
         throw new Error('Authentication required for vote cleanup');
@@ -585,7 +577,6 @@ const resolvers = {
         throw new Error('Invalid authentication token');
       }
 
-      // Check if user is admin
       const usersCollection = db.collection('users');
       const user = await usersCollection.findOne({
         _id: new ObjectId(decoded.id)
@@ -605,17 +596,14 @@ const resolvers = {
         let affectedMovies = 0;
 
         if (resetAll) {
-          // Complete reset
           const voteCount = await votesCollection.countDocuments();
           const comparisonCount = await comparisonsCollection.countDocuments();
           const movieCount = await moviesCollection.countDocuments();
           const userCount = await usersCollection.countDocuments();
 
-          // Delete all votes and comparisons
           await votesCollection.deleteMany({});
           await comparisonsCollection.deleteMany({});
 
-          // Reset all movie statistics
           await moviesCollection.updateMany(
             {},
             {
@@ -629,7 +617,6 @@ const resolvers = {
             }
           );
 
-          // Reset all user vote counts
           await usersCollection.updateMany(
             {},
             {
@@ -648,7 +635,6 @@ const resolvers = {
             affectedMovies: movieCount
           };
         } else if (userId && movieId) {
-          // Remove votes for specific user-movie combination
           const userObjectId = new ObjectId(userId);
           const movieObjectId = new ObjectId(movieId);
 
@@ -669,13 +655,11 @@ const resolvers = {
             affectedMovies: 1
           };
         } else if (userId) {
-          // Remove all votes for specific user
           const userObjectId = new ObjectId(userId);
           const deleteResult = await votesCollection.deleteMany({
             userId: userObjectId
           });
 
-          // Reset user's vote count
           await usersCollection.updateOne(
             { _id: userObjectId },
             { $set: { totalVotes: 0, updatedAt: new Date() } }
@@ -689,7 +673,6 @@ const resolvers = {
             affectedMovies: 0
           };
         } else if (movieId) {
-          // Remove all votes for specific movie
           const movieObjectId = new ObjectId(movieId);
 
           const deleteResult = await votesCollection.deleteMany({
@@ -700,7 +683,6 @@ const resolvers = {
             ]
           });
 
-          // Reset movie's statistics
           await moviesCollection.updateOne(
             { _id: movieObjectId },
             {

@@ -8,7 +8,6 @@ const aggregateOldVotes = async () => {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - 90);
 
-  // Aggregate votes older than 90 days
   const oldVoteStats = await db.votes
     .aggregate([
       { $match: { timestamp: { $lt: cutoffDate } } },
@@ -26,7 +25,6 @@ const aggregateOldVotes = async () => {
     ])
     .toArray();
 
-  // Store aggregated data in a separate collection
   if (oldVoteStats.length > 0) {
     await db.archivedVotes.insertMany(
       oldVoteStats.map(stat => ({
@@ -39,7 +37,6 @@ const aggregateOldVotes = async () => {
       }))
     );
 
-    // Delete the old individual votes
     await db.votes.deleteMany({ timestamp: { $lt: cutoffDate } });
   }
 };
