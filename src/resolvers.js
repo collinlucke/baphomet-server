@@ -18,15 +18,10 @@ const resolvers = {
   },
 
   Query: {
-    async getMovieByTmdbId(tmdbId) {
+    async getMovieByTmdbId(_, { tmdbId }) {
       const collection = db.collection('movies');
-      const searchConditions = [{ tmdbId: tmdbId }];
-
-      const baseQuery = { $and: queryConditions };
-      const countQuery = { $or: searchConditions };
-
       const theMovie = await collection.findOne({
-        tmdbId: tmdbId
+        tmdbId
       });
 
       if (!theMovie) {
@@ -552,7 +547,6 @@ const resolvers = {
       const updatedComparison = await comparisonsCollection.findOne({
         _id: comparison._id
       });
-      console.log(updatedComparison);
 
       return {
         success: true,

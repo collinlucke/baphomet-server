@@ -9,7 +9,7 @@ type Query {
   # Movie operations - used by frontend
   getMovie(id: ID!): Movie
   getAllMovies(limit: Int, searchTerm: String, tmdbId: String, cursor: String): MoviesResult
-  getMovieByTmdbId(tmdbId: String!, limit: Int, cursor: String): Movie
+  getMovieByTmdbId(tmdbId: String!): Movie
   getMoviesByTitle(title: String, limit: Int, cursor: String, sortBy: String, sortOrder: String): MoviesResult
   getRandomBackdropImage: BackdropImage
   

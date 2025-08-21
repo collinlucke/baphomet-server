@@ -186,22 +186,6 @@ const GET_ALL_MOVIES = gql`
 `;
 ```
 
-### `/view/:id` - Movie Detail Page
-**Query**: Use `getMovie` via `/graphql/public`
-```javascript
-const GET_MOVIE = gql`
-  query GetMovie($id: ID!) {
-    getMovie(id: $id) {
-      id
-      title
-      releaseDate
-      rated
-      poster
-      overview
-    }
-  }
-`;
-```
 
 ### `/edit/:id` - Edit Movie Page
 **Requires Authentication**: Use `/graphql` endpoint
