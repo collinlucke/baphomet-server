@@ -6,22 +6,18 @@ schema {
 scalar DateTime
 
 type Query {
-  # Movie operations - used by frontend
   getMovie(id: ID!): Movie
   getAllMovies(limit: Int, searchTerm: String, tmdbId: String, cursor: String): MoviesResult
   getMovieByTmdbId(tmdbId: String!): Movie
   getMoviesByTitle(title: String, limit: Int, cursor: String, sortBy: String, sortOrder: String): MoviesResult
   getRandomBackdropImage: BackdropImage
-  
-  # Arena operations - used by frontend
-  getRandomMovieMatchup: Matchup
-  
-  # Authentication operations - used by frontend
+    getRandomMovieMatchup: Matchup
   checkAuth(token: String): CheckAuth
+  getUserDetails(userId: ID!): User
+  getUserLeaderboard(cursor: String): LeaderboardResult
 }
 
 type Mutation {
-  # Movie operations - used by frontend
   addMovie(
     title: String!
     releaseDate: String
@@ -39,7 +35,6 @@ type Mutation {
     winningPercentage: Float
     totalComparisons: Int
   ): Movie
-
   updateMovie(
     id: ID!
     title: String
@@ -49,25 +44,16 @@ type Mutation {
     tmdbId: String
     overview: String
   ): Movie
-
   deleteMovie(id: ID!): Boolean
-  
-  # User operations - used by frontend
   login(email: String!, password: String!): AuthToken
-  
   signup(
     username: String!
     email: String!
     password: String!
     displayName: String
   ): AuthToken
-  
-  # Arena operations - used by frontend
   submitVote(movie1Id: ID!, movie2Id: ID!, winnerId: ID!): VoteResult
-  
-  # Admin operations - admin only
   cleanupVotes(userId: ID, movieId: ID, resetAll: Boolean): CleanupResult
-
   submitFeedback(
     email: String
     comments: String!
@@ -98,6 +84,13 @@ type Movie {
 type MoviesResult {
   searchResults: [Movie]
   newTotalMovieCount: Int
+  newCursor: String
+  endOfResults: Boolean
+}
+
+type LeaderboardResult {
+  users: [User]
+  newTotalUserCount: Int
   newCursor: String
   endOfResults: Boolean
 }

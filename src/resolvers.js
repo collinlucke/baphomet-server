@@ -156,6 +156,92 @@ const resolvers = {
       }
 
       return { backdropUrl: movie[0].backdropUrl };
+    },
+
+    async getUserDetails(_, { userId }, context) {
+      const usersCollection = db.collection('users');
+      const votesCollection = db.collection('votes');
+      const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+      if (!user) return null;
+
+      const totalVotes = await votesCollection.countDocuments({
+        userId: userId
+      });
+
+      return {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName,
+        totalVotes,
+        joinDate: user.joinDate,
+        role: user.role,
+        emailVerified: user.emailVerified
+      };
+    },
+
+    async getUserLeaderboard(_, { cursor = '' }, context) {
+      const usersCollection = db.collection('users');
+      const parsedLimit = Number(limit) || 50;
+      const queryConditions = [];
+
+      if (cursor) {
+        try {
+          const cursorData = JSON.parse(cursor);
+          queryConditions.push({
+            $or: [
+              { totalVotes: { $lt: cursorData.totalVotes } },
+              {
+                totalVotes: cursorData.totalVotes,
+                joinDate: { $gt: new Date(cursorData.joinDate) }
+              }
+            ]
+          });
+        } catch (error) {
+          console.warn(
+            'Invalid cursor provided to getUserLeaderboard:',
+            cursor
+          );
+        }
+      }
+
+      const query = queryConditions.length > 0 ? { $and: queryConditions } : {};
+
+      const [searchResults, newTotalUserCount] = await Promise.all([
+        usersCollection
+          .find(query)
+          .sort({ totalVotes: -1, joinDate: 1 })
+          .limit(25)
+          .toArray(),
+        usersCollection.countDocuments({})
+      ]);
+
+      const endOfResults = searchResults.length < parsedLimit;
+
+      let newCursor = '';
+      if (searchResults.length > 0 && !endOfResults) {
+        const lastUser = searchResults[searchResults.length - 1];
+        newCursor = JSON.stringify({
+          totalVotes: lastUser.totalVotes,
+          joinDate: lastUser.joinDate.toISOString()
+        });
+      }
+
+      return {
+        searchResults: searchResults.map(user => ({
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          displayName: user.displayName,
+          totalVotes: user.totalVotes,
+          joinDate: user.joinDate,
+          role: user.role,
+          emailVerified: user.emailVerified
+        })),
+        newTotalUserCount,
+        newCursor,
+        endOfResults
+      };
     }
   },
 
@@ -324,6 +410,35 @@ const resolvers = {
     },
     async signup(_, { username, email, password, displayName }) {
       let collection = db.collection('users');
+
+      const invalidValues = [
+        null,
+        undefined,
+        'null',
+        'undefined',
+        '',
+        'NULL',
+        'UNDEFINED'
+      ];
+      const trimmedUsername = username?.trim();
+      const trimmedDisplayName = displayName?.trim();
+
+      if (
+        !trimmedUsername ||
+        invalidValues.includes(username) ||
+        invalidValues.includes(trimmedUsername)
+      ) {
+        throw new Error("You're a stupid idiot.");
+      }
+
+      if (
+        displayName !== undefined &&
+        (!trimmedDisplayName ||
+          invalidValues.includes(displayName) ||
+          invalidValues.includes(trimmedDisplayName))
+      ) {
+        throw new Error("You're a stupid idiot.");
+      }
 
       const existingUser = await collection.findOne({
         $or: [{ email }, { username }]
