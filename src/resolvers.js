@@ -182,7 +182,6 @@ const resolvers = {
 
     async getUserLeaderboard(_, { cursor = '' }, context) {
       const usersCollection = db.collection('users');
-      const parsedLimit = Number(limit) || 50;
       const queryConditions = [];
 
       if (cursor) {
@@ -207,20 +206,16 @@ const resolvers = {
 
       const query = queryConditions.length > 0 ? { $and: queryConditions } : {};
 
-      const [searchResults, newTotalUserCount] = await Promise.all([
-        usersCollection
-          .find(query)
-          .sort({ totalVotes: -1, joinDate: 1 })
-          .limit(25)
-          .toArray(),
-        usersCollection.countDocuments({})
-      ]);
-
-      const endOfResults = searchResults.length < parsedLimit;
+      const users = await usersCollection
+        .find(query)
+        .sort({ totalVotes: -1, joinDate: 1 })
+        .limit(25)
+        .toArray();
+      const endOfResults = users.length < 25;
 
       let newCursor = '';
-      if (searchResults.length > 0 && !endOfResults) {
-        const lastUser = searchResults[searchResults.length - 1];
+      if (users.length > 0 && !endOfResults) {
+        const lastUser = users[users.length - 1];
         newCursor = JSON.stringify({
           totalVotes: lastUser.totalVotes,
           joinDate: lastUser.joinDate.toISOString()
@@ -228,17 +223,10 @@ const resolvers = {
       }
 
       return {
-        searchResults: searchResults.map(user => ({
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          displayName: user.displayName,
-          totalVotes: user.totalVotes,
-          joinDate: user.joinDate,
-          role: user.role,
-          emailVerified: user.emailVerified
+        users: users.map(user => ({
+          ...user,
+          id: user._id
         })),
-        newTotalUserCount,
         newCursor,
         endOfResults
       };
