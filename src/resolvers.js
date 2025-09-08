@@ -257,7 +257,7 @@ const resolvers = {
     ) {
       const token = context.token;
       if (!token) {
-        throw new Error('Authentication required to add movies');
+        throw new Error('Must be logged in to add movies');
       }
 
       try {
@@ -301,7 +301,7 @@ const resolvers = {
     async updateMovie(_, args, context) {
       const token = context.token;
       if (!token) {
-        throw new Error('Authentication required to update movies');
+        throw new Error('Must be logged in to update movies');
       }
 
       try {
@@ -325,7 +325,7 @@ const resolvers = {
     async deleteMovie(_, { id }, context) {
       const token = context.token;
       if (!token) {
-        throw new Error('Authentication required to delete movies');
+        throw new Error('Must be logged in to delete movies');
       }
 
       try {
@@ -488,7 +488,7 @@ const resolvers = {
     async submitVote(_, { movie1Id, movie2Id, winnerId }, context) {
       const token = context.token;
       if (!token) {
-        throw new Error('Authentication required to submit votes');
+        throw new Error('Must be logged in to submit votes');
       }
 
       let decoded;
@@ -661,7 +661,7 @@ const resolvers = {
     async cleanupVotes(_, { userId, movieId, resetAll }, context) {
       const token = context.token;
       if (!token) {
-        throw new Error('Authentication required for vote cleanup');
+        throw new Error('Must be logged in for vote cleanup');
       }
 
       let decoded;
