@@ -45,15 +45,35 @@ type Mutation {
     overview: String
   ): Movie
   deleteMovie(id: ID!): Boolean
-  login(email: String!, password: String!): AuthToken
+  login(emailOrUsername: String!, password: String!): AuthToken
   signup(
     username: String!
     email: String!
     password: String!
     displayName: String
+    firstName: String
+    lastName: String
+    birthday: String
   ): AuthToken
   submitVote(movie1Id: ID!, movie2Id: ID!, winnerId: ID!): VoteResult
   cleanupVotes(userId: ID, movieId: ID, resetAll: Boolean): CleanupResult
+  updateProfile(
+    id: ID!
+    displayName: String
+    firstName: String
+    lastName: String
+    birthday: String
+    email: String
+    username: String
+    avatarUrl: String
+  ): User
+  
+  changePassword(
+    id: ID!
+    currentPassword: String!
+    newPassword: String!
+  ): AuthToken
+  
   submitFeedback(
     email: String
     comments: String!
@@ -105,10 +125,14 @@ type User {
   username: String!
   email: String!
   displayName: String
+  firstName: String
+  lastName: String
+  birthday: String
   totalVotes: Int!
   joinDate: String!
   role: String!
   emailVerified: Boolean!
+  avatarUrl: String
 }
 
 type CheckAuth {
