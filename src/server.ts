@@ -15,6 +15,7 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
+// import letterboxdApi from './routes/letterboxdApi.js';
 
 dotenv.config();
 
@@ -64,6 +65,8 @@ app.use(
     }
   })
 );
+
+// app.use('/letterboxdApi', letterboxdApi);
 
 app.get('/health', (req, res) => {
   res.status(200).json({

@@ -7,14 +7,17 @@ scalar DateTime
 
 type Query {
   getMovie(id: ID!): Movie
-  getAllMovies(limit: Int, searchTerm: String, tmdbId: String, cursor: String): MoviesResult
-  getMovieByTmdbId(tmdbId: String!): Movie
+  getMovies(limit: Int, searchTerm: String, tmdbId: String, cursor: String): MoviesResult
+  getMovieDetails(id: Int!): Movie
+  getMovieByTmdbId(tmdbId: String!): GetMovieByTmdbIdResult
   getMoviesByTitle(title: String, limit: Int, cursor: String, sortBy: String, sortOrder: String): MoviesResult
   getRandomBackdropImage: BackdropImage
     getRandomMovieMatchup: Matchup
   checkAuth(token: String): CheckAuth
   getUserDetails(userId: ID!): User
   getUserLeaderboard(cursor: String): LeaderboardResult
+  fetchMovieFromTmdb(tmdbId: String!): Movie
+  fetchPossibleMovieMatches(title: String!): PossibleMovieMatches
 }
 
 type Mutation {
@@ -24,9 +27,12 @@ type Mutation {
     overview: String
     genres: [String]
     revenue: String
-    posterUrl: String
-    backdropUrl: String
+    posterPath: String
+    backdropPath: String
     tmdbId: String
+    topBilledCast: [CastMemberInput]
+    directors: [DirectorInput]
+    tagline: String
     addedBy: ID
     lastUpdated: DateTime
     createdAt: DateTime
@@ -36,13 +42,19 @@ type Mutation {
     totalComparisons: Int
   ): Movie
   updateMovie(
-    id: ID!
+    id: String!
     title: String
     releaseDate: String
-    posterUrl: String
-    backdropUrl: String
-    tmdbId: String
     overview: String
+    genres: [String]
+    revenue: String
+    posterPath: String
+    backdropPath: String
+    tmdbId: String
+    tagline: String
+    topBilledCast: [CastMemberInput]
+    directors: [DirectorInput]
+    lastUpdated: DateTime
   ): Movie
   deleteMovie(id: ID!): Boolean
   login(emailOrUsername: String!, password: String!): AuthToken
@@ -89,8 +101,8 @@ type Movie {
   overview: String
   genres: [String]
   revenue: String
-  posterUrl: String
-  backdropUrl: String
+  posterPath: String
+  backdropPath: String
   tmdbId: String
   addedBy: ID
   lastUpdated: DateTime
@@ -99,6 +111,9 @@ type Movie {
   totalLosses: Int
   winningPercentage: Float
   totalComparisons: Int
+  tagline: String
+  directors: [Director]
+  topBilledCast: [CastMember]
 }
 
 type MoviesResult {
@@ -106,6 +121,30 @@ type MoviesResult {
   newTotalMovieCount: Int
   newCursor: String
   endOfResults: Boolean
+}
+
+type PossibleMovieMatch {
+  id: ID!
+  title: String
+  releaseDate: String
+  tmdbId: String
+  posterPath: String
+  backdropPath: String
+  overview: String
+  genreIds: [Int]
+}
+
+type PossibleMovieMatches {
+  page: Int
+  results: [PossibleMovieMatch]
+  totalResults: Int
+  totalPages: Int
+}
+
+type GetMovieByTmdbIdResult {
+  movie: Movie
+  found: Boolean!
+  errorMessage: String
 }
 
 type LeaderboardResult {
@@ -197,5 +236,39 @@ type FeedbackResult {
 }
 
 type BackdropImage {
-  backdropUrl: String!
+  backdropPath: String!
+}
+
+# type MovieResponse {
+#   success: Boolean!
+#   message: String
+#   movie: Movie
+# }
+
+type Director {
+  id: ID!
+  name: String!
+  profilePath: String
+  role: String
+}
+
+type CastMember {
+  id: ID!
+  name: String!
+  profilePath: String
+  role: String
+}
+
+input DirectorInput {
+  id: ID!
+  name: String!
+  profilePath: String
+  role: String
+}
+
+input CastMemberInput {
+  id: ID!
+  name: String!
+  profilePath: String
+  role: String
 }

@@ -17,21 +17,21 @@ const resolvers = {
     id: parent => parent.id ?? parent._id
   },
 
+  // <<<<<<<<<< ----------- QUERIES ----------- >>>>>>>>>>>>>>> //
   Query: {
-    async getMovieByTmdbId(_, { tmdbId }) {
-      const collection = db.collection('movies');
-      const theMovie = await collection.findOne({
-        tmdbId
-      });
-
-      if (!theMovie) {
-        return new Error('No movies found with the provided TMDB ID');
+    // ----- CHECK AUTH ----- //
+    async checkAuth(_, args) {
+      const token = args.token;
+      try {
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        return { isValid: true, message: 'Token is valid' };
+      } catch (error) {
+        return { isValid: false, message: error.message };
       }
-
-      return theMovie;
     },
 
-    async getMoviesByTitle(
+    // ----- GET MOVIES ----- //
+    async getMovies(
       _,
       { title, limit, cursor, sortBy = 'title', sortOrder = 'asc' }
     ) {
@@ -80,16 +80,138 @@ const resolvers = {
       };
     },
 
-    async checkAuth(_, args) {
-      const token = args.token;
+    // ----- GET MOVIE BY TMDB ID ----- //
+    async getMovieByTmdbId(_, { tmdbId }) {
+      const collection = db.collection('movies');
+
       try {
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        return { isValid: true, message: 'Token is valid' };
+        const theMovie = await collection.findOne({
+          tmdbId
+        });
+
+        if (!theMovie) {
+          return {
+            found: false,
+            movie: null,
+            errorMessage: null
+          };
+        }
+        return {
+          found: true,
+          movie: theMovie,
+          errorMessage: null
+        };
       } catch (error) {
-        return { isValid: false, message: error.message };
+        console.error(
+          'Error getting movie from the database by TMDB ID:',
+          error
+        );
+        return {
+          found: false,
+          movie: null,
+          errorMessage: `Error getting movie from the database by TMDB ID: ${error.message}`
+        };
       }
     },
 
+    async fetchMovieFromTmdb(_, { tmdbId }) {
+      const newMovie = {};
+      const responses = await Promise.all([
+        fetch(
+          `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${process.env.TMDB_API_KEY}`
+        ),
+        fetch(
+          `https://api.themoviedb.org/3/movie/${tmdbId}/credits?api_key=${process.env.TMDB_API_KEY}`
+        )
+      ]);
+      const [response, creditsResponse] = responses;
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch movie from TMDB');
+      }
+      if (!creditsResponse.ok) {
+        throw new Error('Failed to fetch movie credits from TMDB');
+      }
+
+      const movieData = await response.json();
+      const creditsData = await creditsResponse.json();
+
+      const genres = movieData.genres.map(genre => genre.name);
+
+      const topBilledCast = creditsData.cast.slice(0, 10).map(member => ({
+        id: member.id,
+        name: member.name,
+        role: member.character,
+        profilePath: member.profile_path,
+        order: member.order
+      }));
+
+      const directors = creditsData.crew
+        .filter(member => member.job === 'Director')
+        .map(director => ({
+          id: director.id,
+          name: director.name,
+          profilePath: director.profile_path,
+          role: 'Director'
+        }));
+
+      newMovie.title = movieData.title || 'Unknown Title';
+      newMovie.releaseDate = movieData.release_date || '';
+      newMovie.genres = genres || [];
+      newMovie.revenue = movieData.revenue || '';
+      newMovie.posterPath = movieData.poster_path || '';
+      newMovie.backdropPath = movieData.backdrop_path || '';
+      newMovie.tmdbId = movieData.id || '';
+      newMovie.overview = movieData.overview || '';
+      newMovie.tagline = movieData.tagline || '';
+      newMovie.topBilledCast = topBilledCast || [];
+      newMovie.directors = directors || [];
+
+      return newMovie;
+    },
+
+    async fetchPossibleMovieMatches(_, { title }) {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${title}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch possible movies from TMDB');
+      }
+      const possibleMovieData = await response.json();
+
+      const normalizedMovieResults = possibleMovieData.results.map(movie => ({
+        id: movie.id,
+        title: movie.title,
+        releaseDate: movie.release_date,
+        overview: movie.overview,
+        posterPath: movie.poster_path,
+        backdropPath: movie.backdrop_path,
+        revenue: movie.revenue,
+        tagline: movie.tagline,
+        topBilledCast: movie.cast,
+        directors: movie.directors
+      }));
+
+      return { ...possibleMovieData, results: normalizedMovieResults };
+    },
+
+    // ----- GET MOVIE DETAILS ----- //
+    async getMovieDetails(_, { id }) {
+      const collection = db.collection('movies');
+      let movie;
+
+      if (!isNaN(parseInt(id))) {
+        movie = await collection.findOne({ _id: parseInt(id) });
+      }
+
+      if (!movie) {
+        throw new Error('Movie not found');
+      }
+
+      return movie;
+    },
+
+    // ----- GET RANDOM MOVIE MATCHUP ----- //
     async getRandomMovieMatchup(_, args, context) {
       const collection = db.collection('movies');
 
@@ -141,6 +263,7 @@ const resolvers = {
       };
     },
 
+    // ----- GET RANDOM BACKDROP IMAGE ----- //
     async getRandomBackdropImage(_, {}) {
       const collection = db.collection('movies');
       const getMovie = async () =>
@@ -151,13 +274,14 @@ const resolvers = {
         throw new Error('Movie not found');
       }
 
-      if (!movie[0].backdropUrl) {
+      if (!movie[0].backdropPath) {
         getMovie();
       }
 
-      return { backdropUrl: movie[0].backdropUrl };
+      return { backdropPath: movie[0].backdropPath };
     },
 
+    // ----- GET USER DETAILS ----- //
     async getUserDetails(_, { userId }, context) {
       const usersCollection = db.collection('users');
       const votesCollection = db.collection('votes');
@@ -183,6 +307,7 @@ const resolvers = {
       };
     },
 
+    // ----- GET USER LEADERBOARD ----- //
     async getUserLeaderboard(_, { cursor = '' }, context) {
       const usersCollection = db.collection('users');
       const queryConditions = [];
@@ -236,6 +361,7 @@ const resolvers = {
     }
   },
 
+  // <<<<<<<<<< ----------- MUTATIONS ----------- >>>>>>>>>>>>>>> //
   Mutation: {
     async addMovie(
       _,
@@ -245,8 +371,8 @@ const resolvers = {
         overview,
         genres,
         revenue,
-        posterUrl,
-        backdropUrl,
+        posterPath,
+        backdropPath,
         tmdbId,
         addedBy,
         lastUpdated,
@@ -273,14 +399,29 @@ const resolvers = {
       }
 
       let collection = db.collection('movies');
+
+      // Generate a 5-digit numeric ID (10000-99999)
+      const generateNumericId = () => Math.floor(10000 + Math.random() * 90000);
+
+      // Make sure the generated ID doesn't already exist
+      let numericId;
+      let idExists = true;
+
+      while (idExists) {
+        numericId = generateNumericId();
+        const existingMovie = await collection.findOne({ _id: numericId });
+        idExists = !!existingMovie;
+      }
+
       const movieData = {
+        _id: numericId, // Use the numeric ID as primary key
         title,
         releaseDate,
         overview,
         genres,
         revenue,
-        posterUrl,
-        backdropUrl,
+        posterPath,
+        backdropPath,
         tmdbId,
         addedBy,
         lastUpdated: lastUpdated ? new Date(lastUpdated) : new Date(),
@@ -296,11 +437,12 @@ const resolvers = {
       if (insert.acknowledged) {
         return {
           ...movieData,
-          id: insert.insertedId
+          id: numericId // Return the numeric ID directly
         };
       }
       return null;
     },
+
     async updateMovie(_, args, context) {
       const token = context.token;
       if (!token) {
@@ -316,15 +458,23 @@ const resolvers = {
         throw new Error('Invalid authentication token');
       }
 
-      const id = new ObjectId(args.id);
-      let query = { _id: new ObjectId(id) };
       let collection = db.collection('movies');
-      const update = await collection.updateOne(query, { $set: { ...args } });
+      const { id, ...updateFields } = args;
+      const numericId = parseInt(id);
 
-      if (update.acknowledged) return await collection.findOne(query);
+      const movieInDb = await collection.findOne({ _id: numericId });
+
+      const update = await collection.updateOne(
+        { _id: numericId },
+        { $set: { ...movieInDb, ...updateFields } }
+      );
+
+      if (update.acknowledged)
+        return await collection.findOne({ _id: numericId });
 
       return null;
     },
+
     async deleteMovie(_, { id }, context) {
       const token = context.token;
       if (!token) {
