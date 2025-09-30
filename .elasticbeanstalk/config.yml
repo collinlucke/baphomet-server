@@ -1,12 +1,12 @@
 branch-defaults:
   main:
-    environment: Baphomet-server-env-vpc
+    environment: baphomet-server-env-vpc
     group_suffix: null
 
 global:
   application_name: baphomet-server-env-vpc
   default_ec2_keyname: null
-  default_platform: Node.js 20 running on 64bit Amazon Linux 2023/6.6.5
+  default_platform: Node.js 22 running on 64bit Amazon Linux 2023/6.6.5
   default_region: us-east-1
   include_git_submodules: true
   instance_profile: null
