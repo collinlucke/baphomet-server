@@ -28,8 +28,8 @@ async function updateMovieUrls() {
     const movies = await moviesCollection
       .find({
         $or: [
-          { posterUrl: { $regex: /^https:\/\/image\.tmdb\.org\/t\/p\// } }
-          // { backdropUrl: { $regex: /^https:\/\/image\.tmdb\.org\/t\/p\// } }
+          { posterPath: { $regex: /^https:\/\/image\.tmdb\.org\/t\/p\// } }
+          // { backdropPath: { $regex: /^https:\/\/image\.tmdb\.org\/t\/p\// } }
         ]
       })
       .toArray();
@@ -49,28 +49,31 @@ async function updateMovieUrls() {
       let hasChanges = false;
 
       // Update poster URL to use w300
-      if (movie.posterUrl && movie.posterUrl.includes('image.tmdb.org/t/p/')) {
-        const newPosterUrl = movie.posterUrl.replace(
+      if (
+        movie.posterPath &&
+        movie.posterPath.includes('image.tmdb.org/t/p/')
+      ) {
+        const newposterPath = movie.posterPath.replace(
           'https://image.tmdb.org/t/p/w780/',
           'https://image.tmdb.org/t/p/w300/'
         );
-        if (newPosterUrl !== movie.posterUrl) {
-          updateDoc.posterUrl = newPosterUrl;
+        if (newposterPath !== movie.posterPath) {
+          updateDoc.posterPath = newposterPath;
           hasChanges = true;
         }
       }
 
       // Update backdrop URL to use w1280
       // if (
-      //   movie.backdropUrl &&
-      //   movie.backdropUrl.includes('image.tmdb.org/t/p/')
+      //   movie.backdropPath &&
+      //   movie.backdropPath.includes('image.tmdb.org/t/p/')
       // ) {
-      //   const newBackdropUrl = movie.backdropUrl.replace(
+      //   const newbackdropPath = movie.backdropPath.replace(
       //     'https://image.tmdb.org/t/p/original/',
       //     'https://image.tmdb.org/t/p/w1280/'
       //   );
-      //   if (newBackdropUrl !== movie.backdropUrl) {
-      //     updateDoc.backdropUrl = newBackdropUrl;
+      //   if (newbackdropPath !== movie.backdropPath) {
+      //     updateDoc.backdropPath = newbackdropPath;
       //     hasChanges = true;
       //   }
       // }
@@ -93,13 +96,13 @@ async function updateMovieUrls() {
     console.log('\n📋 Example changes:');
     updates.slice(0, 3).forEach((update, index) => {
       console.log(`\n${index + 1}. "${update.movie.title}"`);
-      if (update.updateDoc.posterUrl) {
-        console.log(`   📸 Poster:   ${update.movie.posterUrl}`);
-        console.log(`   📸 → New:    ${update.updateDoc.posterUrl}`);
+      if (update.updateDoc.posterPath) {
+        console.log(`   📸 Poster:   ${update.movie.posterPath}`);
+        console.log(`   📸 → New:    ${update.updateDoc.posterPath}`);
       }
-      if (update.updateDoc.backdropUrl) {
-        console.log(`   🖼️  Backdrop: ${update.movie.backdropUrl}`);
-        console.log(`   🖼️  → New:    ${update.updateDoc.backdropUrl}`);
+      if (update.updateDoc.backdropPath) {
+        console.log(`   🖼️  Backdrop: ${update.movie.backdropPath}`);
+        console.log(`   🖼️  → New:    ${update.updateDoc.backdropPath}`);
       }
     });
 
