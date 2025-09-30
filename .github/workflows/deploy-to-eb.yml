@@ -50,5 +50,6 @@ jobs:
           application_name: baphomet-server
           environment_name: baphomet-server-env
           region: ${{ secrets.AWS_REGION }}
-          version_label: ${{ github.sha }}
+          version_label: ${{ github.sha }}-${{ github.run_id }}
           deployment_package: deploy.zip
+          use_existing_version_if_available: true
