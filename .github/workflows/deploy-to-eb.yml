@@ -2,8 +2,8 @@ name: Deploy to AWS Elastic Beanstalk
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:  # Allows manual triggering
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
   deploy:
