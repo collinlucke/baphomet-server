@@ -1,0 +1,53 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Replace environment variables
+        run: |
+          sed -i "s|\${ATLAS_DB_USERNAME}|${{ secrets.ATLAS_DB_USERNAME }}|g" .ebextensions/env.config
+          sed -i "s|\${ATLAS_DB_PASSWORD}|${{ secrets.ATLAS_DB_PASSWORD }}|g" .ebextensions/env.config
+          sed -i "s|\${ACCESS_TOKEN_SECRET}|${{ secrets.ACCESS_TOKEN_SECRET }}|g" .ebextensions/env.config
+          sed -i "s|\${REFRESH_TOKEN_SECRET}|${{ secrets.REFRESH_TOKEN_SECRET }}|g" .ebextensions/env.config
+          sed -i "s|\${TMDB_API_KEY}|${{ secrets.TMDB_API_KEY }}|g" .ebextensions/env.config
+          sed -i "s|\${MD5_PASSWORD_HASH}|${{ secrets.MD5_PASSWORD_HASH }}|g" .ebextensions/env.config
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x "*.git*" "node_modules/*" "src/*"
+
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: baphomet-server
+          environment_name: baphomet-server-prod
+          region: ${{ secrets.AWS_REGION }}
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip

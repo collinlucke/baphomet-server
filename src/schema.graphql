@@ -6,13 +6,12 @@ schema {
 scalar DateTime
 
 type Query {
-  getMovie(id: ID!): Movie
-  getMovies(limit: Int, searchTerm: String, tmdbId: String, cursor: String): MoviesResult
+  getMovies(limit: Int, title: String, cursor: String): MoviesResult
   getMovieDetails(id: Int!): Movie
   getMovieByTmdbId(tmdbId: String!): GetMovieByTmdbIdResult
   getMoviesByTitle(title: String, limit: Int, cursor: String, sortBy: String, sortOrder: String): MoviesResult
   getRandomBackdropImage: BackdropImage
-    getRandomMovieMatchup: Matchup
+  getRandomMovieMatchup: Matchup
   checkAuth(token: String): CheckAuth
   getUserDetails(userId: ID!): User
   getUserLeaderboard(cursor: String): LeaderboardResult
@@ -238,12 +237,6 @@ type FeedbackResult {
 type BackdropImage {
   backdropPath: String!
 }
-
-# type MovieResponse {
-#   success: Boolean!
-#   message: String
-#   movie: Movie
-# }
 
 type Director {
   id: ID!

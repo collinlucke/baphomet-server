@@ -23,6 +23,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Add health check endpoint for AWS
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
 const corsOptions = {
   credentials: 'include',
   origin: [
