@@ -1,6 +1,6 @@
 branch-defaults:
   main:
-    environment: baphomet-server-env-vpc
+    environment: Baphomet-server-env-vpc
     group_suffix: null
 
 global:
