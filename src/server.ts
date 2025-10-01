@@ -37,6 +37,7 @@ const corsOptions = {
     'https://d349flehqw3zif.cloudfront.net',
     'https://collinlucke.github.io',
     'https://api.baphomet.collinlucke.com',
+    'https://baphomet-ui.onrender.com',
     process.env.BAPHOMET_UI_URL || 'https://collinlucke.com'
   ]
 };
