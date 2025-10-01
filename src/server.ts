@@ -34,6 +34,7 @@ const corsOptions = {
     'http://localhost:5173',
     'http://192.168.1.112:5173',
     'https://baphomet.collinlucke.com',
+    'https://d349flehqw3zif.cloudfront.net',
     'https://collinlucke.github.io',
     'https://api.baphomet.collinlucke.com',
     process.env.BAPHOMET_UI_URL || 'https://collinlucke.com'
