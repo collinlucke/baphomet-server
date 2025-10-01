@@ -1,6 +1,6 @@
 branch-defaults:
   main:
-    environment: baphomet-server-env
+    environment: baphomet-server-prod
     group_suffix: null
 
 global:
