@@ -6,7 +6,7 @@ schema {
 scalar DateTime
 
 type Query {
-  getMovies(limit: Int, title: String, cursor: String): MoviesResult
+  getMovies(limit: Int, title: String, cursor: String, sortBy: String, sortOrder: String): MoviesResult
   getMovieDetails(id: Int!): Movie
   getMovieByTmdbId(tmdbId: String!): GetMovieByTmdbIdResult
   getMoviesByTitle(title: String, limit: Int, cursor: String, sortBy: String, sortOrder: String): MoviesResult
