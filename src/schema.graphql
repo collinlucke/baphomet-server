@@ -4,10 +4,11 @@ schema {
 }
 
 scalar DateTime
+scalar JSON
 
 type Query {
   getMovies(limit: Int, title: String, cursor: String, sortBy: String, sortOrder: String): MoviesResult
-  getMovieDetails(id: Int!): Movie
+  getMovieDetails(id: ID!): Movie
   getMovieByTmdbId(tmdbId: String!): GetMovieByTmdbIdResult
   getMoviesByTitle(title: String, limit: Int, cursor: String, sortBy: String, sortOrder: String): MoviesResult
   getRandomBackdropImage: BackdropImage
@@ -17,6 +18,10 @@ type Query {
   getUserLeaderboard(cursor: String): LeaderboardResult
   fetchMovieFromTmdb(tmdbId: String!): Movie
   fetchPossibleMovieMatches(title: String!): PossibleMovieMatches
+  getImage(tmdbUrl: String!, type: ImageType!, size: String): String
+  getImageVariants(tmdbUrl: String!, type: ImageType!): ImageVariants 
+  getMovieImage(movieId: ID!, imageType: ImageType!, size: String): String
+  getPersonImage(movieId: ID!, personId: ID!, size: String): String
 }
 
 type Mutation {
@@ -41,7 +46,7 @@ type Mutation {
     totalComparisons: Int
   ): Movie
   updateMovie(
-    id: String!
+    id: ID!
     title: String
     releaseDate: String
     overview: String
@@ -90,6 +95,12 @@ type Mutation {
     comments: String!
     timestamp: DateTime!
   ): FeedbackResult
+  
+  processImage(tmdbUrl: String!, type: ImageType!): ProcessImageResult
+  batchProcessImages(images: [ImageInput!]!): BatchProcessResult
+  
+  processMovieImages(movieId: ID!): MovieImageProcessResult
+  batchProcessMovieImages(limit: Int): BatchMovieImageProcessResult
 }
 
 type Movie {
@@ -102,6 +113,10 @@ type Movie {
   revenue: String
   posterPath: String
   backdropPath: String
+  posterImages: ImageVariants
+  backdropImages: ImageVariants
+  castImages: JSON
+  crewImages: JSON
   tmdbId: String
   addedBy: ID
   lastUpdated: DateTime
@@ -264,4 +279,58 @@ input CastMemberInput {
   name: String!
   profilePath: String
   role: String
+}
+
+enum ImageType {
+  POSTER
+  PROFILE
+  BACKDROP
+}
+
+type ImageVariants {
+  w45: String
+  w92: String
+  w154: String
+  w185: String
+  w300: String
+  w342: String
+  w500: String
+  w780: String
+  w1280: String
+  h632: String
+  original: String
+}
+
+input ImageInput {
+  tmdbUrl: String!
+  type: ImageType!
+  id: String!
+}
+
+type ProcessImageResult {
+  success: Boolean!
+  variants: ImageVariants
+  message: String!
+}
+
+type BatchProcessResult {
+  success: Boolean!
+  results: String
+  message: String!
+}
+
+type MovieImageProcessResult {
+  success: Boolean!
+  posterImages: ImageVariants
+  backdropImages: ImageVariants
+  castImages: JSON
+  crewImages: JSON
+  message: String!
+}
+
+type BatchMovieImageProcessResult {
+  success: Boolean!
+  processed: Int!
+  total: Int
+  message: String!
 }

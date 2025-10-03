@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLetterboxdRating } from '../utils/getLetterboxdRating';
+import { getLetterboxdRating } from '../utils/getLetterboxdRating.js';
 
 const router = express.Router();
 

@@ -1,13 +1,13 @@
 {
   "name": "baphomet-server",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
-    "copy-files": "mkdir -p dist 2>/dev/null || true && cp src/*.js dist/ && cp src/*.graphql dist/",
+    "copy-files": "mkdir -p dist 2>/dev/null || true && cp -r src/* dist/",
     "build": "pnpm run compile && pnpm run copy-files && ls -la dist/",
     "start": "node dist/server.js",
     "kill-port": "bash kill-port.sh",
@@ -18,7 +18,10 @@
     "update-urls-dry-run": "node scripts/update-movie-urls.js --dry-run",
     "cleanup-votes": "node scripts/cleanup-votes.js",
     "recalculate-stats": "node scripts/recalculate-stats.js",
-    "recalculate-stats-dry-run": "node scripts/recalculate-stats.js --dry-run"
+    "recalculate-stats-dry-run": "node scripts/recalculate-stats.js --dry-run",
+    "process-images": "node scripts/process-movie-images-r2.js",
+    "process-images-dry-run": "node scripts/process-movie-images-r2.js --dry-run",
+    "quick-batch-images": "node scripts/quick-batch-images.js"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +38,8 @@
     "graphql-tag": "^2.12.6",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.10.0",
+    "node-fetch": "^3.3.2",
+    "sharp": "^0.33.5",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {

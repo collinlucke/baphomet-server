@@ -9,3 +9,6 @@
 *.key
 *set-env.sh
 deploy.sh
+
+/.cloudflared
+cert.pem

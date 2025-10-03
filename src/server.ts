@@ -55,6 +55,8 @@ const server = new ApolloServer({
 
 await server.start();
 
+app.options('*', cors(corsOptions));
+
 app.use(
   '/graphql',
   cors(corsOptions),
@@ -77,8 +79,6 @@ app.get('/health', (req, res) => {
     graphql: '/graphql'
   });
 });
-
-app.options('*', cors(corsOptions));
 
 app.get('*', (req, res) => {
   const frontendUrl = process.env.BAPHOMET_UI_URL || 'https://collinlucke.com';
