@@ -24,20 +24,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Add health check endpoint for AWS
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
-});
 const corsOptions = {
   credentials: 'include',
   origin: [
     'http://localhost:5173',
     'http://192.168.1.112:5173',
     'https://baphomet.collinlucke.com',
-    'https://d349flehqw3zif.cloudfront.net',
     'https://collinlucke.github.io',
-    'https://api.baphomet.collinlucke.com',
-    'https://baphomet-ui.onrender.com',
     process.env.BAPHOMET_UI_URL || 'https://collinlucke.com'
   ]
 };

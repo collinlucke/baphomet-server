@@ -17,7 +17,7 @@ console.log(
 console.log('NODE_ENV:', process.env.NODE_ENV || 'undefined');
 
 const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_DB_PASSWORD}@${process.env.ATLAS_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
-console.log('📝 Connection URI:', uri.replace(/:([^:@]+)@/, ':***@')); // Hide password in logs
+console.log('📝 Connection URI:', uri.replace(/:([^:@]+)@/, ':***@'));
 
 const databaseName = 'baphy';
 
