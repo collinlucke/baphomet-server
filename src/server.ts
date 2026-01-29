@@ -26,13 +26,31 @@ const app = express();
 
 const corsOptions = {
   credentials: 'include',
-  origin: [
-    'http://localhost:5173',
-    'http://192.168.1.112:5173',
-    'https://baphomet.collinlucke.com',
-    'https://collinlucke.github.io',
-    process.env.BAPHOMET_UI_URL || 'https://collinlucke.com'
-  ]
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://192.168.1.112:5173',
+      'https://baphomet.collinlucke.com',
+      'https://collinlucke.github.io',
+      'https://baphomet-ui.pages.dev',
+      process.env.BAPHOMET_UI_URL || 'https://collinlucke.com'
+    ];
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Check if origin matches Cloudflare Pages preview pattern
+    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.baphomet-ui\.pages\.dev$/)) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  }
 };
 app.use(cors(corsOptions));
 app.use(express.json());
