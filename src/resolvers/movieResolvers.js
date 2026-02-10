@@ -2,6 +2,7 @@ import { processMovieImages } from './enhancedImageResolvers.js';
 import { db } from '../dBConnection.js';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
+import Fuse from 'fuse.js';
 
 export const movieResolvers = {
   Query: {
@@ -146,28 +147,58 @@ export const movieResolvers = {
     },
 
     async fetchPossibleMovieMatches(_, { title }) {
-      const response = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${title}`
-      );
-      if (!response.ok) {
+      console.log('Fetching possible movie matches for title:', title);
+
+      try {
+        // First get broad results from TMDB
+        const response = await fetch(
+          `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(title)}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch movies from TMDB');
+        }
+
+        const tmdbData = await response.json();
+
+        // Configure fuzzy search options
+        const fuseOptions = {
+          keys: ['title', 'original_title'], // Search both title and original title
+          threshold: 0.4, // 0.0 = exact match, 1.0 = match anything
+          distance: 100,
+          minMatchCharLength: 2,
+          includeScore: true
+        };
+
+        // Create Fuse instance and perform fuzzy search
+        const fuse = new Fuse(tmdbData.results, fuseOptions);
+        const fuzzyResults = fuse.search(title);
+
+        // Normalize the fuzzy search results
+        const normalizedResults = fuzzyResults.map(result => ({
+          id: result.item.id,
+          title: result.item.title,
+          releaseDate: result.item.release_date,
+          overview: result.item.overview,
+          posterPath: result.item.poster_path,
+          backdropPath: result.item.backdrop_path,
+          revenue: result.item.revenue,
+          tagline: result.item.tagline,
+          topBilledCast: result.item.cast,
+          directors: result.item.directors,
+          fuzzyScore: result.score // Include relevance score
+        }));
+
+        return {
+          results: normalizedResults,
+          page: tmdbData.page || 1,
+          totalPages: Math.ceil(normalizedResults.length / 20),
+          totalResults: normalizedResults.length
+        };
+      } catch (error) {
+        console.error('Error in fuzzy search:', error);
         throw new Error('Failed to fetch possible movies from TMDB');
       }
-      const possibleMovieData = await response.json();
-
-      const normalizedMovieResults = possibleMovieData.results.map(movie => ({
-        id: movie.id,
-        title: movie.title,
-        releaseDate: movie.release_date,
-        overview: movie.overview,
-        posterPath: movie.poster_path,
-        backdropPath: movie.backdrop_path,
-        revenue: movie.revenue,
-        tagline: movie.tagline,
-        topBilledCast: movie.cast,
-        directors: movie.directors
-      }));
-
-      return { ...possibleMovieData, results: normalizedMovieResults };
     },
 
     // ----- GET MOVIE DETAILS ----- //
@@ -404,9 +435,9 @@ export const movieResolvers = {
       // Check if image-related fields are being updated
       const imageFieldsUpdated = Boolean(
         updateFields.posterPath ||
-          updateFields.backdropPath ||
-          updateFields.topBilledCast ||
-          updateFields.directors
+        updateFields.backdropPath ||
+        updateFields.topBilledCast ||
+        updateFields.directors
       );
 
       const update = await collection.updateOne(
