@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 const corsOptions = {
-  credentials: 'include',
+  credentials: true,
   origin: (origin, callback) => {
     const allowedOrigins = [
       'http://localhost:5173',
@@ -33,6 +33,9 @@ const corsOptions = {
       'https://baphomet.collinlucke.com',
       'https://collinlucke.github.io',
       'https://baphomet-ui.pages.dev',
+      'https://baphomet.onrender.com',
+      'https://baphomet-ui.onrender.com',
+      'https://baphomet-server.onrender.com',
       process.env.BAPHOMET_UI_URL || 'https://collinlucke.com'
     ];
 
@@ -99,7 +102,8 @@ app.get('/health', (req, res) => {
 });
 
 app.get('*', (req, res) => {
-  const frontendUrl = process.env.BAPHOMET_UI_URL || 'https://collinlucke.com';
+  const frontendUrl =
+    process.env.BAPHOMET_UI_URL || 'https://baphomet.onrender.com';
   res.json({
     message: 'Baphomet Server - GraphQL API',
     frontend: frontendUrl,
