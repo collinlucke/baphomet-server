@@ -112,7 +112,35 @@ export const movieResolvers = {
       const movieData = await response.json();
       const creditsData = await creditsResponse.json();
 
-      const genres = movieData.genres.map(genre => genre.name);
+      // Get or create genres with our own IDs
+      const genresCollection = db.collection('genres');
+      const genres = [];
+
+      for (const tmdbGenre of movieData.genres) {
+        // Look for existing genre by name
+        let existingGenre = await genresCollection.findOne({
+          genre: tmdbGenre.name
+        });
+
+        if (!existingGenre) {
+          // Create new genre with our own ID
+          const genreCount = await genresCollection.countDocuments();
+          const newGenreId = (genreCount + 1).toString();
+
+          const newGenre = {
+            id: newGenreId,
+            genre: tmdbGenre.name
+          };
+
+          await genresCollection.insertOne(newGenre);
+          existingGenre = newGenre;
+        }
+
+        genres.push({
+          id: existingGenre.id,
+          genre: existingGenre.genre
+        });
+      }
 
       const topBilledCast = creditsData.cast.slice(0, 10).map(member => ({
         id: member.id,
@@ -238,7 +266,7 @@ export const movieResolvers = {
       const randomMovies = await collection
         .aggregate([{ $sample: { size: 2 } }])
         .toArray();
-
+      console.log(randomMovies[0]);
       if (randomMovies.length < 2) {
         throw new Error('Could not retrieve two movies for matchup.');
       }

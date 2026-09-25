@@ -9,6 +9,7 @@
     "compile": "tsc",
     "copy-files": "mkdir -p dist 2>/dev/null || true && cp -r src/* dist/",
     "build": "bash scripts/build.sh",
+    "embed-ui": "bash scripts/embed-ui.sh",
     "start": "node dist/server.js",
     "kill-port": "bash kill-port.sh",
     "dev": "bash scripts/dev.sh",

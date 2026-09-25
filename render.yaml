@@ -1,4 +1,6 @@
 services:
+  # Rename this service to `baphomet` in the Render dashboard
+  # to serve the app at https://baphomet.onrender.com
   - type: web
     name: baphomet-server
     env: node

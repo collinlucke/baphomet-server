@@ -29,7 +29,7 @@ type Mutation {
     title: String!
     releaseDate: String
     overview: String
-    genres: [String]
+    genres: [GenreInput]
     revenue: String
     posterPath: String
     backdropPath: String
@@ -45,12 +45,13 @@ type Mutation {
     winningPercentage: Float
     totalComparisons: Int
   ): Movie
+
   updateMovie(
     id: ID!
     title: String
     releaseDate: String
     overview: String
-    genres: [String]
+    genres: [GenreInput]
     revenue: String
     posterPath: String
     backdropPath: String
@@ -60,8 +61,11 @@ type Mutation {
     directors: [DirectorInput]
     lastUpdated: DateTime
   ): Movie
+
   deleteMovie(id: ID!): Boolean
+
   login(emailOrUsername: String!, password: String!): AuthToken
+
   signup(
     username: String!
     email: String!
@@ -71,8 +75,11 @@ type Mutation {
     lastName: String
     birthday: String
   ): AuthToken
+
   submitVote(movie1Id: ID!, movie2Id: ID!, winnerId: ID!): VoteResult
+
   cleanupVotes(userId: ID, movieId: ID, resetAll: Boolean): CleanupResult
+
   updateProfile(
     id: ID!
     displayName: String
@@ -97,9 +104,11 @@ type Mutation {
   ): FeedbackResult
   
   processImage(tmdbUrl: String!, type: ImageType!): ProcessImageResult
+
   batchProcessImages(images: [ImageInput!]!): BatchProcessResult
   
   processMovieImages(movieId: ID!): MovieImageProcessResult
+  
   batchProcessMovieImages(limit: Int): BatchMovieImageProcessResult
 }
 
@@ -109,7 +118,7 @@ type Movie {
   rated: String
   releaseDate: String
   overview: String
-  genres: [String]
+  genres: [Genre]
   revenue: String
   posterPath: String
   backdropPath: String
@@ -333,4 +342,14 @@ type BatchMovieImageProcessResult {
   processed: Int!
   total: Int
   message: String!
+}
+
+type Genre {
+  id: ID!
+  genre: String!
+}
+
+input GenreInput {
+  id: ID!
+  genre: String!
 }
