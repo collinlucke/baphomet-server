@@ -15,7 +15,7 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
-// import letterboxdApi from './routes/letterboxdApi.js';
+import { submittalsRouter, materialsRouter } from './routes/submittals.js';
 
 dotenv.config();
 
@@ -48,16 +48,27 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Local dev: localhost, loopback, and private LAN addresses on any port
+    if (
+      origin.match(
+        /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$/
+      ) ||
+      origin.match(/^http:\/\/\[::1\](:\d+)?$/)
+    ) {
+      return callback(null, true);
+    }
+
     // Check if origin matches Cloudflare Pages preview pattern
     if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.baphomet-ui\.pages\.dev$/)) {
       return callback(null, true);
     }
 
+    console.error(`CORS rejected origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   }
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
 
 const typeDefs = gql(
   fs.readFileSync(path.join(__dirname, './schema.graphql'), {
@@ -91,7 +102,8 @@ app.use(
   })
 );
 
-// app.use('/letterboxdApi', letterboxdApi);
+app.use('/api/submittals', submittalsRouter);
+app.use('/api/materials', materialsRouter);
 
 app.get('/health', (req, res) => {
   res.status(200).json({

@@ -8,6 +8,7 @@ import { movieResolvers } from './resolvers/movieResolvers.js';
 import { userResolvers } from './resolvers/userResolvers.js';
 import { votingResolvers } from './resolvers/votingResolvers.js';
 import { enhancedImageResolvers } from './resolvers/enhancedImageResolvers.js';
+import { submittalResolvers } from './resolvers/submittalResolvers.js';
 
 const resolvers = {
   Movie: {
@@ -27,7 +28,8 @@ const resolvers = {
     ...userResolvers.Query,
     ...movieResolvers.Query,
     ...imageResolvers.Query,
-    ...enhancedImageResolvers.Query
+    ...enhancedImageResolvers.Query,
+    ...submittalResolvers.Query
   },
 
   // <<<<<<<<<< ----------- MUTATIONS ----------- >>>>>>>>>>>>>>> //
@@ -37,6 +39,7 @@ const resolvers = {
     ...imageResolvers.Mutation,
     ...enhancedImageResolvers.Mutation,
     ...votingResolvers.Mutation,
+    ...submittalResolvers.Mutation,
 
     submitFeedback: async (_, { email, comments, timestamp }) => {
       const feedbackCollection = db.collection('feedback');

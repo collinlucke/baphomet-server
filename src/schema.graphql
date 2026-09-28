@@ -22,6 +22,10 @@ type Query {
   getImageVariants(tmdbUrl: String!, type: ImageType!): ImageVariants 
   getMovieImage(movieId: ID!, imageType: ImageType!, size: String): String
   getPersonImage(movieId: ID!, personId: ID!, size: String): String
+  catalogCategories: [String!]!
+  catalogItems(category: String, search: String): [CatalogItem!]!
+  savedSubmittals: [SavedSubmittalListItem!]!
+  savedSubmittal(id: ID!): SavedSubmittal
 }
 
 type Mutation {
@@ -63,6 +67,27 @@ type Mutation {
   ): Movie
 
   deleteMovie(id: ID!): Boolean
+
+  createCatalogItem(
+    category: String!
+    name: String!
+    alternateName: String
+    description: String
+    size: String
+  ): CatalogItem!
+  updateCatalogItem(
+    id: ID!
+    category: String
+    name: String
+    alternateName: String
+    description: String
+    size: String
+    imageUrl: String
+  ): CatalogItem!
+  deleteCatalogItem(id: ID!): Boolean
+  createSavedSubmittal(input: SavedSubmittalInput!): SavedSubmittal!
+  updateSavedSubmittal(id: ID!, input: SavedSubmittalInput!): SavedSubmittal!
+  deleteSavedSubmittal(id: ID!): Boolean
 
   login(emailOrUsername: String!, password: String!): AuthToken
 
@@ -352,4 +377,73 @@ type Genre {
 input GenreInput {
   id: ID!
   genre: String!
+}
+
+type CatalogItem {
+  id: ID!
+  category: String!
+  name: String!
+  alternateName: String
+  description: String
+  size: String
+  imageUrl: String
+  active: Boolean
+}
+
+type SavedSubmittalCategory {
+  id: ID!
+  categoryName: String!
+  selectedMaterialIds: [ID!]!
+}
+
+type CoverImageLayout {
+  x: Float
+  y: Float
+  width: Float
+  height: Float
+}
+
+type SavedSubmittalListItem {
+  id: ID!
+  name: String!
+  coverTitle: String
+  hasCover: Boolean
+  categoryCount: Int
+  materialCount: Int
+  updatedAt: String
+  createdAt: String
+}
+
+type SavedSubmittal {
+  id: ID!
+  name: String!
+  coverTitle: String
+  coverImageUrl: String
+  coverImageMimeType: String
+  coverImageLayout: CoverImageLayout
+  categories: [SavedSubmittalCategory!]!
+  createdAt: String
+  updatedAt: String
+}
+
+input SavedSubmittalCategoryInput {
+  id: ID!
+  categoryName: String!
+  selectedMaterialIds: [ID!]!
+}
+
+input CoverImageLayoutInput {
+  x: Float
+  y: Float
+  width: Float
+  height: Float
+}
+
+input SavedSubmittalInput {
+  name: String!
+  coverTitle: String
+  coverImageUrl: String
+  coverImageMimeType: String
+  coverImageLayout: CoverImageLayoutInput
+  categories: [SavedSubmittalCategoryInput!]!
 }

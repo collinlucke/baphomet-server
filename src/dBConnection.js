@@ -20,6 +20,7 @@ const uri = `mongodb+srv://${process.env.ATLAS_DB_USERNAME}:${process.env.ATLAS_
 console.log('📝 Connection URI:', uri.replace(/:([^:@]+)@/, ':***@'));
 
 const databaseName = 'baphy';
+const mdDatabaseName = 'md-projects';
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -39,5 +40,6 @@ try {
 }
 
 let db = client.db(databaseName);
+let mdDb = client.db(mdDatabaseName);
 
-export { db, client, databaseName };
+export { db, mdDb, client, databaseName, mdDatabaseName };
