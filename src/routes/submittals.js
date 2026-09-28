@@ -164,7 +164,8 @@ submittalsRouter.post('/generate-pdf', async (req, res) => {
       categories,
       materialPages,
       plantScheduleBase64,
-      plantScheduleMimeType
+      plantScheduleMimeType,
+      plantScheduleUrl
     } = req.body || {};
 
     if (!Array.isArray(categories)) {
@@ -193,6 +194,10 @@ submittalsRouter.post('/generate-pdf', async (req, res) => {
         typeof plantScheduleMimeType === 'string' &&
         plantScheduleMimeType.startsWith('image/')
           ? plantScheduleMimeType
+          : null,
+      plantScheduleUrl:
+        typeof plantScheduleUrl === 'string' && plantScheduleUrl
+          ? plantScheduleUrl
           : null
     });
 

@@ -200,6 +200,8 @@ const toSaved = doc => ({
   opportunity: null,
   coverImageUrl: doc.coverImageUrl || null,
   coverImageMimeType: doc.coverImageMimeType || null,
+  plantScheduleImageUrl: doc.plantScheduleImageUrl || null,
+  plantScheduleMimeType: doc.plantScheduleMimeType || null,
   coverImageLayout: doc.coverImageLayout || {
     x: 0,
     y: 0,
@@ -244,6 +246,8 @@ export const savedSubmittals = {
       coverTitle: payload.coverTitle || '',
       coverImageUrl: payload.coverImageUrl || null,
       coverImageMimeType: payload.coverImageMimeType || null,
+      plantScheduleImageUrl: payload.plantScheduleImageUrl || null,
+      plantScheduleMimeType: payload.plantScheduleMimeType || null,
       coverImageLayout: payload.coverImageLayout,
       categories: payload.categories || [],
       createdAt: now,
@@ -267,6 +271,8 @@ export const savedSubmittals = {
           coverTitle: payload.coverTitle || '',
           coverImageUrl: payload.coverImageUrl || null,
           coverImageMimeType: payload.coverImageMimeType || null,
+          plantScheduleImageUrl: payload.plantScheduleImageUrl || null,
+          plantScheduleMimeType: payload.plantScheduleMimeType || null,
           coverImageLayout: payload.coverImageLayout,
           categories: payload.categories || [],
           updatedAt: now

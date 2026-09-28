@@ -83,6 +83,7 @@ type GeneratePdfOptions = {
   materialPages?: MaterialPageData[];
   plantScheduleBase64?: string | null;
   plantScheduleMimeType?: string | null;
+  plantScheduleUrl?: string | null;
 };
 
 async function resolveCoverImage(options: GeneratePdfOptions): Promise<{
@@ -107,6 +108,38 @@ async function resolveCoverImage(options: GeneratePdfOptions): Promise<{
     const mimeType =
       response.headers.get("content-type") ||
       options.coverImageMimeType ||
+      "image/jpeg";
+    return {
+      base64: buffer.toString("base64"),
+      mimeType,
+    };
+  }
+
+  return { base64: null, mimeType: null };
+}
+
+async function resolvePlantSchedule(options: GeneratePdfOptions): Promise<{
+  base64: string | null;
+  mimeType: string | null;
+}> {
+  if (options.plantScheduleBase64 && options.plantScheduleMimeType) {
+    return {
+      base64: options.plantScheduleBase64,
+      mimeType: options.plantScheduleMimeType,
+    };
+  }
+
+  if (options.plantScheduleUrl) {
+    const response = await fetch(options.plantScheduleUrl);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch plant schedule (${response.status}) from URL`,
+      );
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const mimeType =
+      response.headers.get("content-type") ||
+      options.plantScheduleMimeType ||
       "image/jpeg";
     return {
       base64: buffer.toString("base64"),
@@ -403,11 +436,12 @@ export async function generateSubmittalPdf(
     }
   }
 
-  if (options.plantScheduleBase64 && options.plantScheduleMimeType) {
+  const plantSchedule = await resolvePlantSchedule(options);
+  if (plantSchedule.base64 && plantSchedule.mimeType) {
     const appendixHtml = createPageHtml(
       appendixPageTemplate({
-        imageBase64: options.plantScheduleBase64,
-        imageMimeType: options.plantScheduleMimeType,
+        imageBase64: plantSchedule.base64,
+        imageMimeType: plantSchedule.mimeType,
       }),
     );
     const appendixPdf = await renderPageToPdf(appendixHtml);
