@@ -44,9 +44,7 @@ export const submittalResolvers = {
     updateCatalogItem: async (_parent, { id, ...rest }) => {
       return toCatalogItem(await catalog.updateItem(id, rest));
     },
-    deleteCatalogItem: async () => {
-      throw new Error('Delete is not available yet');
-    },
+    deleteCatalogItem: async (_parent, { id }) => catalog.deleteItem(id),
     createSavedSubmittal: async (_parent, { input }) => {
       const created = await savedSubmittals.create(input);
       return savedSubmittals.get(created.id);

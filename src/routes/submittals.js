@@ -73,11 +73,7 @@ submittalsRouter.post('/material-items', async (req, res) => {
       size: req.body?.purchaseUnit,
       category: req.body?.categoryId
     });
-    res.status(201).json({
-      material,
-      kit: null,
-      urls: { material: '', kit: '' }
-    });
+    res.status(201).json({ material });
   } catch (error) {
     sendError(res, error);
   }
@@ -223,8 +219,13 @@ materialsRouter.get('/unit-types', (_req, res) => {
   res.json(UNIT_TYPES);
 });
 
-materialsRouter.post('/sync-installed-kits', (_req, res) => {
-  res.json({ updated: 0, failed: 0, skipped: 0, details: [] });
+materialsRouter.delete('/:id', async (req, res) => {
+  try {
+    await catalog.deleteItem(req.params.id);
+    res.json({ ok: true });
+  } catch (error) {
+    sendError(res, error);
+  }
 });
 
 materialsRouter.put('/:id', async (req, res) => {

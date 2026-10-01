@@ -58,6 +58,7 @@ type MaterialPageItem = {
   id: number;
   materialName: string;
   altName?: string;
+  description?: string;
   imageUrl?: string;
   categoryName?: string;
 };
@@ -260,6 +261,29 @@ function createPageHtml(content: string): string {
     align-items: center;
     gap: 16px;
     flex-shrink: 0;
+  }
+  .material-item.first-in-category {
+    margin-top: 15px;
+  }
+  .material-item.has-description {
+    align-items: flex-start;
+  }
+  .material-description {
+    margin-top: 6px;
+    color: #1a1a1a;
+    font-size: 14px;
+    line-height: 1.35;
+    text-align: left;
+  }
+  .material-description p {
+    margin: 0;
+  }
+  .material-description img {
+    display: block;
+    max-width: 100%;
+    max-height: 160px;
+    object-fit: contain;
+    margin-top: 6px;
   }
   .material-item.even {
     flex-direction: row;

@@ -2,8 +2,54 @@ type MaterialPageItem = {
   id: number;
   materialName: string;
   altName?: string;
+  description?: string;
   imageUrl?: string;
   categoryName?: string;
+};
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+const decodeHtml = (value: string) =>
+  value
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+const isEmptyRichText = (html: string) => {
+  const text = html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .trim();
+  return !text && !/<img\b/i.test(html);
+};
+
+const sanitizeRichText = (html: string) => {
+  const source = String(html ?? "");
+  if (!source.trim()) return "";
+  if (!/<[a-z][\s\S]*>/i.test(source)) {
+    return escapeHtml(source).replace(/\n/g, "<br>");
+  }
+  const withoutScripts = source
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/javascript:/gi, "");
+  const withImages = withoutScripts.replace(/<img\b[^>]*>/gi, (tag) => {
+    const src = /src\s*=\s*("([^"]*)"|'([^']*)')/i.exec(tag);
+    const url = decodeHtml(src?.[2] || src?.[3] || "");
+    if (!/^https?:\/\//i.test(url)) return "";
+    return `<img src="${escapeHtml(url)}" alt="" />`;
+  });
+  return withImages.replace(
+    /<(?!\/?(p|br|strong|b|em|i|u|ul|ol|li|img|div|span)\b)[^>]*>/gi,
+    ""
+  );
 };
 
 type MaterialPageTemplateOptions = {
@@ -74,13 +120,19 @@ export function materialPageTemplate({
 
   // Build rows HTML
   const rowsHtml = rows
-    .map((row) => {
+    .map((row, rowIdx) => {
       if (row.type === "heading") {
         return `<div class="material-page-heading">${row.label}</div>`;
       }
+      const followsHeading =
+        rowIdx > 0 && rows[rowIdx - 1]?.type === "heading";
 
       const { item, index } = row;
       const isEven = index % 2 === 0;
+      const descriptionHtml =
+        item.description && !isEmptyRichText(item.description)
+          ? `<div class="material-description">${sanitizeRichText(item.description)}</div>`
+          : "";
       const SKEW = 18;
 
       const circleHtml = item.imageUrl
@@ -93,7 +145,7 @@ export function materialPageTemplate({
         : `polygon(0 0, calc(100% - ${SKEW}px) 0, 100% 100%, ${SKEW}px 100%)`;
 
       return `
-        <div class="material-item ${isEven ? "even" : "odd"}">
+        <div class="material-item ${isEven ? "even" : "odd"}${descriptionHtml ? " has-description" : ""}${followsHeading ? " first-in-category" : ""}">
           <div class="material-image">
             ${circleHtml}
           </div>
@@ -106,6 +158,7 @@ export function materialPageTemplate({
                 ${item.altName || ""}
               </div>
             </div>
+            ${descriptionHtml}
           </div>
         </div>
       `;

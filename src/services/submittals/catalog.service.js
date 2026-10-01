@@ -33,9 +33,7 @@ export const toMaterial = doc => {
     imageUrl: doc.imageUrl || null,
     active: doc.active !== false,
     availableToBid: true,
-    itemType: 'CatalogItem',
-    kitId: null,
-    kitUrl: null
+    itemType: 'CatalogItem'
   };
 };
 
@@ -167,6 +165,17 @@ export const catalog = {
     await items().updateOne({ _id: itemId }, { $set: next });
     const updated = await items().findOne({ _id: itemId });
     return toMaterial(updated);
+  },
+
+  async deleteItem(id) {
+    const itemId = toId(id);
+    if (!itemId) throw new Error('Item not found');
+    const result = await items().updateOne(
+      { _id: itemId, active: { $ne: false } },
+      { $set: { active: false, updatedAt: new Date() } }
+    );
+    if (result.matchedCount !== 1) throw new Error('Item not found');
+    return true;
   },
 
   async setGroupImage(itemId, imageUrl) {
