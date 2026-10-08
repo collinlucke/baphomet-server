@@ -15,7 +15,6 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault
 } from '@apollo/server/plugin/landingPage/default';
-import { submittalsRouter, materialsRouter } from './routes/submittals.js';
 
 dotenv.config();
 
@@ -101,9 +100,6 @@ app.use(
     }
   })
 );
-
-app.use('/api/submittals', submittalsRouter);
-app.use('/api/materials', materialsRouter);
 
 app.get('/health', (req, res) => {
   res.status(200).json({
