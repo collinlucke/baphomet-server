@@ -189,7 +189,7 @@ export async function processMoviePeople(people, type, db) {
       try {
         // Check if person already exists and has processed images
         const existingPerson = await db.collection('people').findOne({
-          tmdbId: parseInt(person.id)
+          tmdbId: person.id
         });
         let shouldProcess = true;
 
@@ -204,7 +204,7 @@ export async function processMoviePeople(people, type, db) {
 
         if (shouldProcess) {
           const personData = {
-            tmdbId: parseInt(person.id),
+            tmdbId: person.id,
             name: person.name,
             profilePath: person.profilePath,
             knownFor: type === 'cast' ? 'Acting' : 'Directing'

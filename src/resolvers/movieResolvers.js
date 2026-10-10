@@ -92,15 +92,18 @@ export const movieResolvers = {
 
     async fetchMovieFromTmdb(_, { tmdbId }) {
       const newMovie = {};
+      const apiV3BaseUrl = `https://api.themoviedb.org/3/movie/${tmdbId}`;
       const responses = await Promise.all([
+        // Get movie data
+        fetch(`${apiV3BaseUrl}?api_key=${process.env.TMDB_API_KEY}`),
+        // Get movie credits - Cast and Crew
+        fetch(`${apiV3BaseUrl}/credits?api_key=${process.env.TMDB_API_KEY}`),
+        // Used to get MPA Rating
         fetch(
-          `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${process.env.TMDB_API_KEY}`
-        ),
-        fetch(
-          `https://api.themoviedb.org/3/movie/${tmdbId}/credits?api_key=${process.env.TMDB_API_KEY}`
+          `${apiV3BaseUrl}/release_dates?api_key=${process.env.TMDB_API_KEY}`
         )
       ]);
-      const [response, creditsResponse] = responses;
+      const [response, creditsResponse, releaseDatesResponse] = responses;
 
       if (!response.ok) {
         throw new Error('Failed to fetch movie from TMDB');
@@ -108,9 +111,15 @@ export const movieResolvers = {
       if (!creditsResponse.ok) {
         throw new Error('Failed to fetch movie credits from TMDB');
       }
+      if (!releaseDatesResponse.ok) {
+        throw new Error(
+          'Failed to fetch movie release dates and MPA Rating from TMDB'
+        );
+      }
 
       const movieData = await response.json();
       const creditsData = await creditsResponse.json();
+      const releaseDatesData = await releaseDatesResponse.json();
 
       // Get or create genres with our own IDs
       const genresCollection = db.collection('genres');
@@ -159,8 +168,20 @@ export const movieResolvers = {
           role: 'Director'
         }));
 
+      const releaseDates =
+        releaseDatesData.results.find(result => result.iso_3166_1 === 'US')
+          ?.release_dates ?? [];
+
+      const latestRelease = releaseDates
+        // Release type 3 stands for Theatrical Release
+        .filter(release => release.type === 3)
+        .sort((a, b) => new Date(b.release_date) - new Date(a.release_date))[0];
+
+      const mpaRating = latestRelease?.certification ?? '';
+
       newMovie.title = movieData.title || 'Unknown Title';
       newMovie.releaseDate = movieData.release_date || '';
+      newMovie.mpaRating = mpaRating || '';
       newMovie.genres = genres || [];
       newMovie.revenue = movieData.revenue || '';
       newMovie.posterPath = movieData.poster_path || '';
@@ -188,6 +209,7 @@ export const movieResolvers = {
         }
 
         const tmdbData = await response.json();
+        console.log('TMDB data:', tmdbData);
 
         // Configure fuzzy search options
         const fuseOptions = {
@@ -201,10 +223,12 @@ export const movieResolvers = {
         // Create Fuse instance and perform fuzzy search
         const fuse = new Fuse(tmdbData.results, fuseOptions);
         const fuzzyResults = fuse.search(title);
-
+        console.log('Fuzzy results:', fuzzyResults);
         // Normalize the fuzzy search results
+
         const normalizedResults = fuzzyResults.map(result => ({
           id: result.item.id,
+          tmdbId: result.item.id,
           title: result.item.title,
           releaseDate: result.item.release_date,
           overview: result.item.overview,
@@ -450,7 +474,7 @@ export const movieResolvers = {
 
       // If not found and it's numeric, try by tmdbId
       if (!movieInDb && !isNaN(parseInt(id))) {
-        movieInDb = await collection.findOne({ tmdbId: parseInt(id) });
+        movieInDb = await collection.findOne({ tmdbId: id });
         if (movieInDb) {
           queryId = movieInDb._id;
         }

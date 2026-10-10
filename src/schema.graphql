@@ -117,7 +117,7 @@ type Mutation {
 type Movie {
   id: ID
   title: String
-  rated: String
+  mpaRating: String
   releaseDate: String
   overview: String
   genres: [Genre]
@@ -152,6 +152,7 @@ type PossibleMovieMatch {
   id: ID!
   title: String
   releaseDate: String
+  mpaRating: String
   tmdbId: String
   posterPath: String
   backdropPath: String
