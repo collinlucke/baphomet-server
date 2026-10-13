@@ -16,7 +16,8 @@ export async function processPersonImages(
       try {
         results.profileImages = await ImageService.processImage(
           tmdbProfileUrl,
-          'profile'
+          'profile',
+          person.tmdbId
         );
         console.log(`✅ Processed profile images for: ${person.name}`);
       } catch (error) {

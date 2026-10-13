@@ -2,17 +2,17 @@ import ImageService from '../services/ImageService.js';
 
 export const imageResolvers = {
   Query: {
-    async getImage(parent, { tmdbUrl, type, size }) {
+    async getImage(parent, { tmdbUrl, type, size, ownerId }) {
       try {
-        return await ImageService.getImage(tmdbUrl, type, size);
+        return await ImageService.getImage(tmdbUrl, type, size, ownerId);
       } catch (error) {
         throw new Error(`Failed to get image: ${error.message}`);
       }
     },
 
-    async getImageVariants(parent, { tmdbUrl, type }) {
+    async getImageVariants(parent, { tmdbUrl, type, ownerId }) {
       try {
-        return await ImageService.processImage(tmdbUrl, type);
+        return await ImageService.processImage(tmdbUrl, type, ownerId);
       } catch (error) {
         throw new Error(`Failed to get image variants: ${error.message}`);
       }
@@ -20,9 +20,13 @@ export const imageResolvers = {
   },
 
   Mutation: {
-    async processImage(parent, { tmdbUrl, type }) {
+    async processImage(parent, { tmdbUrl, type, ownerId }) {
       try {
-        const variants = await ImageService.processImage(tmdbUrl, type);
+        const variants = await ImageService.processImage(
+          tmdbUrl,
+          type,
+          ownerId
+        );
         return {
           success: true,
           variants,

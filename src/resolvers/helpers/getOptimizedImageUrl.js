@@ -1,8 +1,7 @@
-export function getOptimizedImageUrl(imageVariants, preferredSize = 'w342') {
+export function getOptimizedImageUrl(imageVariants, preferredSize = 'w500') {
   if (!imageVariants) return null;
 
-  // Try preferred size first, fallback to available sizes
-  const fallbackOrder = ['w342', 'w500', 'w185', 'w780', 'original'];
+  const fallbackOrder = ['w500', 'w780', 'w1920', 'w185', 'h632'];
 
   if (imageVariants[preferredSize]) {
     return imageVariants[preferredSize];

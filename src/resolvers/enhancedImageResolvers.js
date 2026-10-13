@@ -16,7 +16,8 @@ export async function processPersonImages(
       try {
         results.profileImages = await ImageService.processImage(
           tmdbProfileUrl,
-          'profile'
+          'profile',
+          person.tmdbId
         );
         console.log(`✅ Processed profile images for: ${person.name}`);
       } catch (error) {
@@ -78,7 +79,8 @@ export async function processMovieImages(movie, updateInDb = false, db = null) {
       try {
         results.posterImages = await ImageService.processImage(
           tmdbPosterUrl,
-          'poster'
+          'poster',
+          movie.tmdbId
         );
         console.log(
           `✅ Processed poster for movie: ${movie.title || movie.tmdbId}`
@@ -98,7 +100,8 @@ export async function processMovieImages(movie, updateInDb = false, db = null) {
       try {
         results.backdropImages = await ImageService.processImage(
           tmdbBackdropUrl,
-          'backdrop'
+          'backdrop',
+          movie.tmdbId
         );
         console.log(
           `✅ Processed backdrop for movie: ${movie.title || movie.tmdbId}`
@@ -112,11 +115,36 @@ export async function processMovieImages(movie, updateInDb = false, db = null) {
       }
     }
 
+    const creditIds = [
+      ...(movie.cast || []).map(credit => credit.personId),
+      ...(movie.crew || []).map(credit => credit.personId)
+    ];
+    const peopleById = new Map();
+    if (db && creditIds.length > 0) {
+      const people = await db
+        .collection('people')
+        .find({ tmdbId: { $in: creditIds } })
+        .toArray();
+      for (const person of people) peopleById.set(person.tmdbId, person);
+    }
+
+    const peopleForImages = credits =>
+      (credits || [])
+        .map(credit => {
+          const person = peopleById.get(credit.personId);
+          return {
+            id: credit.personId,
+            name: person?.name || '',
+            profilePath: person?.profilePath || ''
+          };
+        })
+        .filter(person => person.id && person.profilePath);
+
     // Process cast member images
-    if (movie.topBilledCast && movie.topBilledCast.length > 0) {
+    if (movie.cast?.length > 0) {
       try {
         const castResults = await processMoviePeople(
-          movie.topBilledCast,
+          peopleForImages(movie.cast),
           'cast',
           db
         );
@@ -135,11 +163,11 @@ export async function processMovieImages(movie, updateInDb = false, db = null) {
       }
     }
 
-    // Process director images
-    if (movie.directors && movie.directors.length > 0) {
+    // Process crew images
+    if (movie.crew?.length > 0) {
       try {
         const directorResults = await processMoviePeople(
-          movie.directors,
+          peopleForImages(movie.crew),
           'crew',
           db
         );
@@ -284,11 +312,10 @@ export async function batchProcessMovieImages(movies, db = null) {
   return results;
 }
 
-export function getOptimizedImageUrl(imageVariants, preferredSize = 'w342') {
+export function getOptimizedImageUrl(imageVariants, preferredSize = 'w500') {
   if (!imageVariants) return null;
 
-  // Try preferred size first, fallback to available sizes
-  const fallbackOrder = ['w342', 'w500', 'w185', 'w780', 'original'];
+  const fallbackOrder = ['w500', 'w780', 'w1920', 'w185', 'h632'];
 
   if (imageVariants[preferredSize]) {
     return imageVariants[preferredSize];
@@ -310,7 +337,7 @@ export function getOptimizedProfileImageUrl(
   if (!imageVariants) return null;
 
   // Try preferred size first, fallback to available sizes for profiles
-  const fallbackOrder = ['w185', 'h632', 'w45', 'original'];
+  const fallbackOrder = ['w185', 'h632'];
 
   if (imageVariants[preferredSize]) {
     return imageVariants[preferredSize];

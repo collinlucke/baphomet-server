@@ -12,14 +12,19 @@ export class TMDBImageHelper {
     try {
       if (movie.poster_path) {
         const posterUrl = this.getFullImageUrl(movie.poster_path);
-        results.poster = await ImageService.processImage(posterUrl, 'poster');
+        results.poster = await ImageService.processImage(
+          posterUrl,
+          'poster',
+          movie.tmdbId ?? movie.id
+        );
       }
 
       if (movie.backdrop_path) {
         const backdropUrl = this.getFullImageUrl(movie.backdrop_path);
         results.backdrop = await ImageService.processImage(
           backdropUrl,
-          'backdrop'
+          'backdrop',
+          movie.tmdbId ?? movie.id
         );
       }
 
@@ -35,19 +40,23 @@ export class TMDBImageHelper {
       if (!person.profile_path) return null;
 
       const profileUrl = this.getFullImageUrl(person.profile_path);
-      return await ImageService.processImage(profileUrl, 'profile');
+      return await ImageService.processImage(
+        profileUrl,
+        'profile',
+        person.tmdbId ?? person.id
+      );
     } catch (error) {
       console.error('Failed to process person image:', error);
       return null;
     }
   }
 
-  static async getOptimizedImageUrl(tmdbPath, type, size = null) {
+  static async getOptimizedImageUrl(tmdbPath, type, size = null, ownerId) {
     if (!tmdbPath) return null;
 
     try {
       const fullUrl = this.getFullImageUrl(tmdbPath);
-      return await ImageService.getImage(fullUrl, type, size);
+      return await ImageService.getImage(fullUrl, type, size, ownerId);
     } catch (error) {
       console.error('Failed to get optimized image:', error);
 
@@ -63,7 +72,8 @@ export class TMDBImageHelper {
         imageJobs.push({
           tmdbUrl: this.getFullImageUrl(movie.poster_path),
           type: 'poster',
-          id: `${movie.id}_poster`
+          id: `${movie.id}_poster`,
+          ownerId: movie.tmdbId ?? movie.id
         });
       }
 
@@ -71,7 +81,8 @@ export class TMDBImageHelper {
         imageJobs.push({
           tmdbUrl: this.getFullImageUrl(movie.backdrop_path),
           type: 'backdrop',
-          id: `${movie.id}_backdrop`
+          id: `${movie.id}_backdrop`,
+          ownerId: movie.tmdbId ?? movie.id
         });
       }
     });
@@ -87,7 +98,7 @@ export class TMDBImageHelper {
   }
 
   static async enhanceMovieWithImages(movie, preferredSizes = {}) {
-    const { posterSize = 'w342', backdropSize = 'w780' } = preferredSizes;
+    const { posterSize = 'w500', backdropSize = 'w780' } = preferredSizes;
 
     const enhanced = { ...movie };
 
@@ -96,7 +107,8 @@ export class TMDBImageHelper {
         enhanced.optimizedPosterUrl = await this.getOptimizedImageUrl(
           movie.poster_path,
           'poster',
-          posterSize
+          posterSize,
+          movie.tmdbId ?? movie.id
         );
       }
 
@@ -104,7 +116,8 @@ export class TMDBImageHelper {
         enhanced.optimizedBackdropUrl = await this.getOptimizedImageUrl(
           movie.backdrop_path,
           'backdrop',
-          backdropSize
+          backdropSize,
+          movie.tmdbId ?? movie.id
         );
       }
 
@@ -115,37 +128,30 @@ export class TMDBImageHelper {
     }
   }
 
-  static async getResponsiveImageUrls(tmdbPath, type) {
+  static async getResponsiveImageUrls(tmdbPath, type, ownerId) {
     if (!tmdbPath) return null;
 
     try {
       const fullUrl = this.getFullImageUrl(tmdbPath);
-      const variants = await ImageService.processImage(fullUrl, type);
+      const variants = await ImageService.processImage(fullUrl, type, ownerId);
 
       switch (type) {
         case 'poster':
           return {
-            small: variants.w185,
-            medium: variants.w342,
             large: variants.w500,
-            xlarge: variants.w780,
-            original: variants.original
+            xlarge: variants.w780
           };
 
         case 'backdrop':
           return {
-            small: variants.w300,
             medium: variants.w780,
-            large: variants.w1280,
-            original: variants.original
+            large: variants.w1920
           };
 
         case 'profile':
           return {
-            small: variants.w45,
             medium: variants.w185,
-            large: variants.h632,
-            original: variants.original
+            large: variants.h632
           };
 
         default:

@@ -20,7 +20,8 @@ export const processMovieImagesHelper = async (
       try {
         results.posterImages = await ImageService.processImage(
           tmdbPosterUrl,
-          'poster'
+          'poster',
+          movie.tmdbId
         );
         console.log(
           `✅ Processed poster for movie: ${movie.title || movie.tmdbId}`
@@ -40,7 +41,8 @@ export const processMovieImagesHelper = async (
       try {
         results.backdropImages = await ImageService.processImage(
           tmdbBackdropUrl,
-          'backdrop'
+          'backdrop',
+          movie.tmdbId
         );
         console.log(
           `✅ Processed backdrop for movie: ${movie.title || movie.tmdbId}`
@@ -54,11 +56,36 @@ export const processMovieImagesHelper = async (
       }
     }
 
+    const creditIds = [
+      ...(movie.cast || []).map(credit => credit.personId),
+      ...(movie.crew || []).map(credit => credit.personId)
+    ];
+    const peopleById = new Map();
+    if (db && creditIds.length > 0) {
+      const people = await db
+        .collection('people')
+        .find({ tmdbId: { $in: creditIds } })
+        .toArray();
+      for (const person of people) peopleById.set(person.tmdbId, person);
+    }
+
+    const peopleForImages = credits =>
+      (credits || [])
+        .map(credit => {
+          const person = peopleById.get(credit.personId);
+          return {
+            id: credit.personId,
+            name: person?.name || '',
+            profilePath: person?.profilePath || ''
+          };
+        })
+        .filter(person => person.id && person.profilePath);
+
     // Process cast member images
-    if (movie.topBilledCast && movie.topBilledCast.length > 0) {
+    if (movie.cast?.length > 0) {
       try {
         const castResults = await processMoviePeople(
-          movie.topBilledCast,
+          peopleForImages(movie.cast),
           'cast',
           db
         );
@@ -77,11 +104,11 @@ export const processMovieImagesHelper = async (
       }
     }
 
-    // Process director images
-    if (movie.directors && movie.directors.length > 0) {
+    // Process crew images
+    if (movie.crew?.length > 0) {
       try {
         const directorResults = await processMoviePeople(
-          movie.directors,
+          peopleForImages(movie.crew),
           'crew',
           db
         );

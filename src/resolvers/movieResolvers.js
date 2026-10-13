@@ -3,6 +3,79 @@ import { db } from '../dBConnection.js';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import Fuse from 'fuse.js';
+import { mapTmdbMovie, creditPersonStubs } from '../services/mapTmdbMovie.js';
+import { tmdbFetch, tmdbMovieUrl } from '../services/tmdbClient.js';
+import { upsertMoviePeople } from '../services/upsertMoviePeople.js';
+
+const numericOrNull = value => {
+  if (value == null || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+const resolveGenres = async tmdbGenres => {
+  const genresCollection = db.collection('genres');
+  const genres = [];
+
+  for (const tmdbGenre of tmdbGenres || []) {
+    let existingGenre = await genresCollection.findOne({
+      genre: tmdbGenre.name
+    });
+
+    if (!existingGenre) {
+      const genreCount = await genresCollection.countDocuments();
+      const newGenre = {
+        id: (genreCount + 1).toString(),
+        genre: tmdbGenre.name
+      };
+      await genresCollection.insertOne(newGenre);
+      existingGenre = newGenre;
+    }
+
+    genres.push({
+      id: existingGenre.id,
+      genre: existingGenre.genre
+    });
+  }
+
+  return genres;
+};
+
+const movieFieldsFromArgs = args => ({
+  title: args.title,
+  originalTitle: args.originalTitle || '',
+  originalLanguage: args.originalLanguage || '',
+  releaseDate: args.releaseDate || '',
+  overview: args.overview || '',
+  tagline: args.tagline || '',
+  homepage: args.homepage || '',
+  status: args.status || '',
+  mpaRating: args.mpaRating || '',
+  genres: args.genres || [],
+  revenue: numericOrNull(args.revenue),
+  budget: numericOrNull(args.budget),
+  runtime: args.runtime ?? null,
+  popularity: numericOrNull(args.popularity),
+  voteAverage: numericOrNull(args.voteAverage),
+  voteCount: args.voteCount ?? null,
+  adult: Boolean(args.adult),
+  posterPath: args.posterPath || '',
+  backdropPath: args.backdropPath || '',
+  logoPath: args.logoPath || '',
+  posterPaths: args.posterPaths || [],
+  backdropPaths: args.backdropPaths || [],
+  tmdbId: numericOrNull(args.tmdbId) ?? args.tmdbId,
+  imdbId: args.imdbId || '',
+  spokenLanguages: args.spokenLanguages || [],
+  productionCompanies: args.productionCompanies || [],
+  productionCountries: args.productionCountries || [],
+  originCountries: args.originCountries || [],
+  keywords: args.keywords || [],
+  certifications: args.certifications || [],
+  videos: args.videos || [],
+  cast: args.cast || [],
+  crew: args.crew || []
+});
 
 export const movieResolvers = {
   Query: {
@@ -91,108 +164,15 @@ export const movieResolvers = {
     },
 
     async fetchMovieFromTmdb(_, { tmdbId }) {
-      const newMovie = {};
-      const apiV3BaseUrl = `https://api.themoviedb.org/3/movie/${tmdbId}`;
-      const responses = await Promise.all([
-        // Get movie data
-        fetch(`${apiV3BaseUrl}?api_key=${process.env.TMDB_API_KEY}`),
-        // Get movie credits - Cast and Crew
-        fetch(`${apiV3BaseUrl}/credits?api_key=${process.env.TMDB_API_KEY}`),
-        // Used to get MPA Rating
-        fetch(
-          `${apiV3BaseUrl}/release_dates?api_key=${process.env.TMDB_API_KEY}`
-        )
-      ]);
-      const [response, creditsResponse, releaseDatesResponse] = responses;
-
+      const response = await tmdbFetch(tmdbMovieUrl(tmdbId));
       if (!response.ok) {
         throw new Error('Failed to fetch movie from TMDB');
       }
-      if (!creditsResponse.ok) {
-        throw new Error('Failed to fetch movie credits from TMDB');
-      }
-      if (!releaseDatesResponse.ok) {
-        throw new Error(
-          'Failed to fetch movie release dates and MPA Rating from TMDB'
-        );
-      }
 
-      const movieData = await response.json();
-      const creditsData = await creditsResponse.json();
-      const releaseDatesData = await releaseDatesResponse.json();
-
-      // Get or create genres with our own IDs
-      const genresCollection = db.collection('genres');
-      const genres = [];
-
-      for (const tmdbGenre of movieData.genres) {
-        // Look for existing genre by name
-        let existingGenre = await genresCollection.findOne({
-          genre: tmdbGenre.name
-        });
-
-        if (!existingGenre) {
-          // Create new genre with our own ID
-          const genreCount = await genresCollection.countDocuments();
-          const newGenreId = (genreCount + 1).toString();
-
-          const newGenre = {
-            id: newGenreId,
-            genre: tmdbGenre.name
-          };
-
-          await genresCollection.insertOne(newGenre);
-          existingGenre = newGenre;
-        }
-
-        genres.push({
-          id: existingGenre.id,
-          genre: existingGenre.genre
-        });
-      }
-
-      const topBilledCast = creditsData.cast.slice(0, 10).map(member => ({
-        id: member.id,
-        name: member.name,
-        role: member.character,
-        profilePath: member.profile_path,
-        order: member.order
-      }));
-
-      const directors = creditsData.crew
-        .filter(member => member.job === 'Director')
-        .map(director => ({
-          id: director.id,
-          name: director.name,
-          profilePath: director.profile_path,
-          role: 'Director'
-        }));
-
-      const releaseDates =
-        releaseDatesData.results.find(result => result.iso_3166_1 === 'US')
-          ?.release_dates ?? [];
-
-      const latestRelease = releaseDates
-        // Release type 3 stands for Theatrical Release
-        .filter(release => release.type === 3)
-        .sort((a, b) => new Date(b.release_date) - new Date(a.release_date))[0];
-
-      const mpaRating = latestRelease?.certification ?? '';
-
-      newMovie.title = movieData.title || 'Unknown Title';
-      newMovie.releaseDate = movieData.release_date || '';
-      newMovie.mpaRating = mpaRating || '';
-      newMovie.genres = genres || [];
-      newMovie.revenue = movieData.revenue || '';
-      newMovie.posterPath = movieData.poster_path || '';
-      newMovie.backdropPath = movieData.backdrop_path || '';
-      newMovie.tmdbId = movieData.id || '';
-      newMovie.overview = movieData.overview || '';
-      newMovie.tagline = movieData.tagline || '';
-      newMovie.topBilledCast = topBilledCast || [];
-      newMovie.directors = directors || [];
-
-      return newMovie;
+      const payload = await response.json();
+      const genres = await resolveGenres(payload.genres);
+      await upsertMoviePeople(db, creditPersonStubs(payload));
+      return mapTmdbMovie(payload, genres);
     },
 
     async fetchPossibleMovieMatches(_, { title }) {
@@ -223,8 +203,6 @@ export const movieResolvers = {
         // Create Fuse instance and perform fuzzy search
         const fuse = new Fuse(tmdbData.results, fuseOptions);
         const fuzzyResults = fuse.search(title);
-        console.log('Fuzzy results:', fuzzyResults);
-        // Normalize the fuzzy search results
 
         const normalizedResults = fuzzyResults.map(result => ({
           id: result.item.id,
@@ -236,8 +214,8 @@ export const movieResolvers = {
           backdropPath: result.item.backdrop_path,
           revenue: result.item.revenue,
           tagline: result.item.tagline,
-          topBilledCast: result.item.cast,
-          directors: result.item.directors,
+          cast: result.item.cast,
+          crew: result.item.crew,
           fuzzyScore: result.score // Include relevance score
         }));
 
@@ -338,39 +316,19 @@ export const movieResolvers = {
         throw new Error('Movie not found');
       }
 
-      if (!movie[0].backdropPath) {
+      if (!movie[0].backdropPath && !movie[0].backdropImages?.w1920) {
         getMovie();
       }
 
-      return { backdropPath: movie[0].backdropPath };
+      return {
+        backdropPath:
+          movie[0].backdropImages?.w1920 || movie[0].backdropPath
+      };
     }
   },
 
   Mutation: {
-    async addMovie(
-      _,
-      {
-        title,
-        releaseDate,
-        overview,
-        genres,
-        revenue,
-        posterPath,
-        backdropPath,
-        tmdbId,
-        topBilledCast,
-        directors,
-        tagline,
-        addedBy,
-        lastUpdated,
-        createdAt,
-        totalWins,
-        totalLosses,
-        winningPercentage,
-        totalComparisons
-      },
-      context
-    ) {
+    async addMovie(_, args, context) {
       const token = context.token;
       if (!token) {
         throw new Error('Must be logged in to add movies');
@@ -387,18 +345,9 @@ export const movieResolvers = {
 
       let collection = db.collection('movies');
 
+      const { addedBy, lastUpdated, createdAt, totalWins, totalLosses, winningPercentage, totalComparisons } = args;
       const movieData = {
-        title,
-        releaseDate,
-        overview,
-        genres,
-        revenue,
-        posterPath,
-        backdropPath,
-        tmdbId,
-        topBilledCast: topBilledCast || [],
-        directors: directors || [],
-        tagline: tagline || '',
+        ...movieFieldsFromArgs(args),
         addedBy,
         lastUpdated: lastUpdated ? new Date(lastUpdated) : new Date(),
         createdAt: createdAt ? new Date(createdAt) : new Date(),
@@ -419,21 +368,21 @@ export const movieResolvers = {
 
         // Process images in the background after successful insert
         if (
-          posterPath ||
-          backdropPath ||
-          movieData.topBilledCast?.length > 0 ||
-          movieData.directors?.length > 0
+          movieData.posterPath ||
+          movieData.backdropPath ||
+          movieData.cast?.length > 0 ||
+          movieData.crew?.length > 0
         ) {
           setImmediate(async () => {
             try {
-              console.log(`🔄 Processing images for new movie: ${title}`);
+              console.log(`🔄 Processing images for new movie: ${movieData.title}`);
               await processMovieImages(newMovie, true, db);
               console.log(
-                `✅ Background image processing completed for: ${title}`
+                `✅ Background image processing completed for: ${movieData.title}`
               );
             } catch (error) {
               console.error(
-                `❌ Background image processing failed for movie ${title}:`,
+                `❌ Background image processing failed for movie ${movieData.title}:`,
                 error.message
               );
             }
@@ -488,8 +437,8 @@ export const movieResolvers = {
       const imageFieldsUpdated = Boolean(
         updateFields.posterPath ||
         updateFields.backdropPath ||
-        updateFields.topBilledCast ||
-        updateFields.directors
+        updateFields.cast ||
+        updateFields.crew
       );
 
       const update = await collection.updateOne(

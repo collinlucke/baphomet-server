@@ -10,12 +10,26 @@
  * 4. Remove votes for a specific user-movie combination
  *
  * Usage:
- *   node scripts/cleanup-votes.js --help
  *   node scripts/cleanup-votes.js --user-id="USER_ID"
  *   node scripts/cleanup-votes.js --movie-id="MOVIE_ID"
  *   node scripts/cleanup-votes.js --user-id="USER_ID" --movie-id="MOVIE_ID"
  *   node scripts/cleanup-votes.js --reset-all
  *   node scripts/cleanup-votes.js --reset-all --confirm
+ *
+ * Examples:
+ * Remove all votes by user "64a7b8c9d1e2f3g4h5i6j7k8"
+ * node scripts/cleanup-votes.js --user-id="64a7b8c9d1e2f3g4h5i6j7k8"
+ *
+ * Remove all votes for movie "The Matrix"
+ * node scripts/cleanup-votes.js --movie-id="64a7b8c9d1e2f3g4h5i6j7k9"
+ *
+ * Remove specific user's votes for specific movie
+ * node scripts/cleanup-votes.js --user-id="64a7b8c9d1e2f3g4h5i6j7k8" --movie-id="64a7b8c9d1e2f3g4h5i6j7k9"
+ *
+ * DANGER: Complete reset (removes all votes, comparisons, resets movie stats)
+ * node scripts/cleanup-votes.js --reset-all --confirm
+ *
+ * Note: Always backup your database before running destructive operations!
  */
 import { db, client } from '../src/dBConnection.js';
 import { ObjectId } from 'mongodb';
@@ -32,39 +46,6 @@ const userId = getArg('user-id');
 const movieId = getArg('movie-id');
 const resetAll = hasFlag('reset-all');
 const confirm = hasFlag('confirm');
-const help = hasFlag('help');
-
-function showHelp() {
-  console.log(`
-🗳️  Voting Data Cleanup Script
-
-Usage:
-  node scripts/cleanup-votes.js [OPTIONS]
-
-Options:
-  --user-id=USER_ID          Remove all votes for a specific user
-  --movie-id=MOVIE_ID        Remove all votes for a specific movie
-  --user-id=X --movie-id=Y   Remove votes for specific user-movie combination
-  --reset-all                Remove ALL voting data (requires --confirm)
-  --confirm                  Confirm destructive operations
-  --help                     Show this help message
-
-Examples:
-  # Remove all votes by user "64a7b8c9d1e2f3g4h5i6j7k8"
-  node scripts/cleanup-votes.js --user-id="64a7b8c9d1e2f3g4h5i6j7k8"
-
-  # Remove all votes for movie "The Matrix"
-  node scripts/cleanup-votes.js --movie-id="64a7b8c9d1e2f3g4h5i6j7k9"
-
-  # Remove specific user's votes for specific movie
-  node scripts/cleanup-votes.js --user-id="64a7b8c9d1e2f3g4h5i6j7k8" --movie-id="64a7b8c9d1e2f3g4h5i6j7k9"
-
-  # DANGER: Complete reset (removes all votes, comparisons, resets movie stats)
-  node scripts/cleanup-votes.js --reset-all --confirm
-
-Note: Always backup your database before running destructive operations!
-`);
-}
 
 async function removeUserVotes(userId) {
   console.log(`🔍 Removing all votes for user: ${userId}`);
@@ -281,13 +262,8 @@ async function resetAllVotingData() {
 }
 
 async function main() {
-  if (help) {
-    showHelp();
-    return;
-  }
-
   if (!userId && !movieId && !resetAll) {
-    console.log('❌ No operation specified. Use --help for usage information.');
+    console.log('❌ No operation specified.');
     return;
   }
 

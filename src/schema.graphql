@@ -18,8 +18,8 @@ type Query {
   getUserLeaderboard(cursor: String): LeaderboardResult
   fetchMovieFromTmdb(tmdbId: String!): Movie
   fetchPossibleMovieMatches(title: String!): PossibleMovieMatches
-  getImage(tmdbUrl: String!, type: ImageType!, size: String): String
-  getImageVariants(tmdbUrl: String!, type: ImageType!): ImageVariants 
+  getImage(tmdbUrl: String!, type: ImageType!, size: String, ownerId: String!): String
+  getImageVariants(tmdbUrl: String!, type: ImageType!, ownerId: String!): ImageVariants 
   getMovieImage(movieId: ID!, imageType: ImageType!, size: String): String
   getPersonImage(movieId: ID!, personId: ID!, size: String): String
   catalogCategories: [String!]!
@@ -32,12 +32,34 @@ type Mutation {
     releaseDate: String
     overview: String
     genres: [GenreInput]
-    revenue: String
+    revenue: Float
     posterPath: String
     backdropPath: String
     tmdbId: String
-    topBilledCast: [CastMemberInput]
-    directors: [DirectorInput]
+    imdbId: String
+    originalTitle: String
+    originalLanguage: String
+    homepage: String
+    status: String
+    runtime: Int
+    budget: Float
+    popularity: Float
+    voteAverage: Float
+    voteCount: Int
+    adult: Boolean
+    mpaRating: String
+    spokenLanguages: [String]
+    productionCompanies: [String]
+    productionCountries: [String]
+    originCountries: [String]
+    keywords: [String]
+    logoPath: String
+    posterPaths: [String]
+    backdropPaths: [String]
+    certifications: [CertificationInput]
+    videos: [VideoInput]
+    cast: [CastCreditInput]
+    crew: [CrewCreditInput]
     tagline: String
     addedBy: ID
     lastUpdated: DateTime
@@ -54,13 +76,35 @@ type Mutation {
     releaseDate: String
     overview: String
     genres: [GenreInput]
-    revenue: String
+    revenue: Float
     posterPath: String
     backdropPath: String
     tmdbId: String
+    imdbId: String
+    originalTitle: String
+    originalLanguage: String
+    homepage: String
+    status: String
+    runtime: Int
+    budget: Float
+    popularity: Float
+    voteAverage: Float
+    voteCount: Int
+    adult: Boolean
+    mpaRating: String
+    spokenLanguages: [String]
+    productionCompanies: [String]
+    productionCountries: [String]
+    originCountries: [String]
+    keywords: [String]
+    logoPath: String
+    posterPaths: [String]
+    backdropPaths: [String]
+    certifications: [CertificationInput]
+    videos: [VideoInput]
+    cast: [CastCreditInput]
+    crew: [CrewCreditInput]
     tagline: String
-    topBilledCast: [CastMemberInput]
-    directors: [DirectorInput]
     lastUpdated: DateTime
   ): Movie
 
@@ -105,7 +149,7 @@ type Mutation {
     timestamp: DateTime!
   ): FeedbackResult
   
-  processImage(tmdbUrl: String!, type: ImageType!): ProcessImageResult
+  processImage(tmdbUrl: String!, type: ImageType!, ownerId: String!): ProcessImageResult
 
   batchProcessImages(images: [ImageInput!]!): BatchProcessResult
   
@@ -117,18 +161,42 @@ type Mutation {
 type Movie {
   id: ID
   title: String
+  originalTitle: String
+  originalLanguage: String
   mpaRating: String
   releaseDate: String
   overview: String
+  tagline: String
+  homepage: String
+  status: String
   genres: [Genre]
-  revenue: String
+  revenue: Float
+  budget: Float
+  runtime: Int
+  popularity: Float
+  voteAverage: Float
+  voteCount: Int
+  adult: Boolean
   posterPath: String
   backdropPath: String
+  logoPath: String
+  posterPaths: [String]
+  backdropPaths: [String]
   posterImages: ImageVariants
   backdropImages: ImageVariants
   castImages: JSON
   crewImages: JSON
   tmdbId: String
+  imdbId: String
+  spokenLanguages: [String]
+  productionCompanies: [String]
+  productionCountries: [String]
+  originCountries: [String]
+  keywords: [String]
+  certifications: [Certification]
+  videos: [Video]
+  cast: [CastCredit]
+  crew: [CrewCredit]
   addedBy: ID
   lastUpdated: DateTime
   createdAt: DateTime
@@ -136,9 +204,62 @@ type Movie {
   totalLosses: Int
   winningPercentage: Float
   totalComparisons: Int
-  tagline: String
-  directors: [Director]
-  topBilledCast: [CastMember]
+}
+
+type Certification {
+  country: String
+  rating: String
+  releaseDate: String
+}
+
+input CertificationInput {
+  country: String
+  rating: String
+  releaseDate: String
+}
+
+type Video {
+  name: String
+  site: String
+  key: String
+  type: String
+  official: Boolean
+}
+
+input VideoInput {
+  name: String
+  site: String
+  key: String
+  type: String
+  official: Boolean
+}
+
+type CastCredit {
+  personId: Int
+  character: String
+  order: Int
+  name: String
+  profilePath: String
+}
+
+input CastCreditInput {
+  personId: Int
+  character: String
+  order: Int
+}
+
+type CrewCredit {
+  personId: Int
+  job: String
+  department: String
+  name: String
+  profilePath: String
+}
+
+input CrewCreditInput {
+  personId: Int
+  job: String
+  department: String
 }
 
 type MoviesResult {
@@ -309,6 +430,7 @@ type ImageVariants {
   w500: String
   w780: String
   w1280: String
+  w1920: String
   h632: String
   original: String
 }
@@ -317,6 +439,7 @@ input ImageInput {
   tmdbUrl: String!
   type: ImageType!
   id: String!
+  ownerId: String
 }
 
 type ProcessImageResult {

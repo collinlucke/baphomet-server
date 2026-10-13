@@ -21,33 +21,24 @@ function getBucketName() {
 const IMAGE_CONFIGS = {
   poster: {
     sizes: [
-      { name: 'w92', width: 92 },
-      { name: 'w154', width: 154 },
-      { name: 'w185', width: 185 },
-      { name: 'w342', width: 342 },
       { name: 'w500', width: 500 },
-      { name: 'w780', width: 780 },
-      { name: 'original', width: null }
+      { name: 'w780', width: 780 }
     ],
     aspectRatio: 2 / 3,
-    defaultSize: 'w342'
+    defaultSize: 'w500'
   },
   profile: {
     sizes: [
-      { name: 'w45', width: 45 },
       { name: 'w185', width: 185 },
-      { name: 'h632', height: 632 },
-      { name: 'original', width: null }
+      { name: 'h632', height: 632 }
     ],
     aspectRatio: 2 / 3,
     defaultSize: 'w185'
   },
   backdrop: {
     sizes: [
-      { name: 'w300', width: 300 },
       { name: 'w780', width: 780 },
-      { name: 'w1280', width: 1280 },
-      { name: 'original', width: null }
+      { name: 'w1920', width: 1920 }
     ],
     aspectRatio: 16 / 9,
     defaultSize: 'w780'
@@ -59,7 +50,8 @@ class ImageService {
     method,
     path,
     contentType = '',
-    dateString = new Date().toUTCString()
+    dateString = new Date().toUTCString(),
+    extraHeaders = {}
   ) {
     const region = 'auto';
     const service = 's3';
@@ -75,15 +67,20 @@ class ImageService {
 
     const canonicalUri = path;
     const canonicalQueryString = '';
-    let canonicalHeaders = `host:${host}\nx-amz-content-sha256:UNSIGNED-PAYLOAD\nx-amz-date:${amzDate}\n`;
-    let signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
-
-    if (contentType) {
-      canonicalHeaders = `content-type:${contentType}\n` + canonicalHeaders;
-      signedHeaders = 'content-type;' + signedHeaders;
-    }
-
     const payloadHash = 'UNSIGNED-PAYLOAD';
+    const headerMap = {
+      host,
+      'x-amz-content-sha256': payloadHash,
+      'x-amz-date': amzDate,
+      ...extraHeaders
+    };
+    if (contentType) headerMap['content-type'] = contentType;
+
+    const signedHeaderNames = Object.keys(headerMap).sort();
+    const canonicalHeaders = signedHeaderNames
+      .map(name => `${name}:${headerMap[name]}\n`)
+      .join('');
+    const signedHeaders = signedHeaderNames.join(';');
 
     const canonicalRequest = [
       method,
@@ -126,12 +123,69 @@ class ImageService {
     };
   }
 
-  generateImageHash(tmdbUrl) {
-    return crypto.createHash('md5').update(tmdbUrl).digest('hex');
+  generateR2Key(type, ownerId, size, extension = 'jpg') {
+    const collection = type === 'profile' ? 'people' : 'movies';
+    return `images/${collection}/${ownerId}/${type}/${size}.${extension}`;
   }
 
-  generateR2Key(type, hash, size, extension = 'jpg') {
-    return `images/${type}/${size}/${hash}.${extension}`;
+  async copyObject(sourceKey, destKey) {
+    const copySource = `/${getBucketName()}/${sourceKey
+      .split('/')
+      .map(encodeURIComponent)
+      .join('/')}`;
+    const date = new Date().toUTCString();
+    const { authorization, amzDate } = this.createAuthHeader(
+      'PUT',
+      `/${destKey}`,
+      '',
+      date,
+      { 'x-amz-copy-source': copySource }
+    );
+
+    const response = await fetch(`${getR2Endpoint()}/${destKey}`, {
+      method: 'PUT',
+      agent: httpsAgent,
+      headers: {
+        'x-amz-copy-source': copySource,
+        'x-amz-content-sha256': 'UNSIGNED-PAYLOAD',
+        'x-amz-date': amzDate,
+        Authorization: authorization
+      }
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `Copy failed: ${response.status} ${response.statusText} ${body}`
+      );
+    }
+  }
+
+  async deleteObject(key) {
+    const date = new Date().toUTCString();
+    const { authorization, amzDate } = this.createAuthHeader(
+      'DELETE',
+      `/${key}`,
+      '',
+      date
+    );
+
+    const response = await fetch(`${getR2Endpoint()}/${key}`, {
+      method: 'DELETE',
+      agent: httpsAgent,
+      headers: {
+        'x-amz-content-sha256': 'UNSIGNED-PAYLOAD',
+        'x-amz-date': amzDate,
+        Authorization: authorization
+      }
+    });
+
+    if (!response.ok && response.status !== 404) {
+      const body = await response.text();
+      throw new Error(
+        `Delete failed: ${response.status} ${response.statusText} ${body}`
+      );
+    }
   }
 
   async imageExists(key) {
@@ -180,19 +234,22 @@ class ImageService {
     if (size.width && size.height) {
       resized = sharp_image.resize(size.width, size.height, {
         fit: 'cover',
-        position: 'center'
+        position: 'center',
+        withoutEnlargement: true
       });
     } else if (size.width) {
       const height = Math.round(size.width / config.aspectRatio);
       resized = sharp_image.resize(size.width, height, {
         fit: 'cover',
-        position: 'center'
+        position: 'center',
+        withoutEnlargement: true
       });
     } else if (size.height) {
       const width = Math.round(size.height * config.aspectRatio);
       resized = sharp_image.resize(width, size.height, {
         fit: 'cover',
-        position: 'center'
+        position: 'center',
+        withoutEnlargement: true
       });
     }
 
@@ -308,19 +365,23 @@ class ImageService {
     return `${getR2Endpoint()}/${key}?${canonicalQueryString}&X-Amz-Signature=${signature}`;
   }
 
-  async processImage(tmdbUrl, type) {
-    const config = IMAGE_CONFIGS[type];
+  async processImage(tmdbUrl, type, ownerId) {
+    const imageType = String(type).toLowerCase();
+    const config = IMAGE_CONFIGS[imageType];
     if (!config) {
       throw new Error(`Invalid image type: ${type}`);
     }
+    if (ownerId === undefined || ownerId === null || ownerId === '') {
+      throw new Error(`ownerId is required to store ${imageType} images`);
+    }
 
-    const hash = this.generateImageHash(tmdbUrl);
+    const owner = String(ownerId);
     const originalBuffer = await this.downloadImage(tmdbUrl);
 
     const results = {};
 
     for (const size of config.sizes) {
-      const key = this.generateR2Key(type, hash, size.name);
+      const key = this.generateR2Key(imageType, owner, size.name);
 
       if (await this.imageExists(key)) {
         results[size.name] = await this.getImageUrl(key);
@@ -336,9 +397,9 @@ class ImageService {
         await this.uploadToR2(key, resizedBuffer);
         results[size.name] = await this.getImageUrl(key);
 
-        console.log(`✅ Processed ${type} ${size.name}: ${key}`);
+        console.log(`✅ Processed ${imageType} ${size.name}: ${key}`);
       } catch (error) {
-        console.error(`❌ Failed to process ${type} ${size.name}:`, error);
+        console.error(`❌ Failed to process ${imageType} ${size.name}:`, error);
         throw error;
       }
     }
@@ -346,27 +407,30 @@ class ImageService {
     return results;
   }
 
-  async getImage(tmdbUrl, type, requestedSize = null) {
-    const config = IMAGE_CONFIGS[type];
+  async getImage(tmdbUrl, type, requestedSize = null, ownerId) {
+    const imageType = String(type).toLowerCase();
+    const config = IMAGE_CONFIGS[imageType];
     const size = requestedSize || config.defaultSize;
-
-    const hash = this.generateImageHash(tmdbUrl);
-    const key = this.generateR2Key(type, hash, size);
+    const key = this.generateR2Key(imageType, ownerId, size);
 
     if (await this.imageExists(key)) {
       return await this.getImageUrl(key);
     }
 
-    const results = await this.processImage(tmdbUrl, type);
+    const results = await this.processImage(tmdbUrl, imageType, ownerId);
     return results[size];
   }
 
   async batchProcessImages(images) {
     const results = {};
 
-    for (const { tmdbUrl, type, id } of images) {
+    for (const { tmdbUrl, type, id, ownerId } of images) {
       try {
-        const variants = await this.processImage(tmdbUrl, type);
+        const variants = await this.processImage(
+          tmdbUrl,
+          type,
+          ownerId ?? id
+        );
         results[id] = variants;
       } catch (error) {
         console.error(`Failed to process image ${id}:`, error);

@@ -8,10 +8,20 @@ import { movieResolvers } from './resolvers/movieResolvers.js';
 import { userResolvers } from './resolvers/userResolvers.js';
 import { votingResolvers } from './resolvers/votingResolvers.js';
 import { enhancedImageResolvers } from './resolvers/enhancedImageResolvers.js';
+import { attachPeople } from './services/upsertMoviePeople.js';
+
+const numericOrNull = value => {
+  if (value == null || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
 
 const resolvers = {
   Movie: {
-    id: parent => parent.id ?? parent._id
+    id: parent => parent.id ?? parent._id,
+    revenue: parent => numericOrNull(parent.revenue),
+    cast: parent => attachPeople(db, parent.cast || []),
+    crew: parent => attachPeople(db, parent.crew || [])
   },
 
   Comparison: {
