@@ -5,7 +5,19 @@ import { ObjectId } from 'mongodb';
 import Fuse from 'fuse.js';
 import { mapTmdbMovie, creditPersonStubs } from '../services/mapTmdbMovie.js';
 import { tmdbFetch, tmdbMovieUrl } from '../services/tmdbClient.js';
+import { selectBackdropPaths, selectPosterPaths } from '../services/tmdbImages.js';
 import { upsertMoviePeople } from '../services/upsertMoviePeople.js';
+
+const tmdbIdQuery = tmdbId => {
+  const values = [];
+  const numeric = Number(tmdbId);
+  const text = tmdbId == null ? '' : String(tmdbId);
+
+  if (tmdbId != null && tmdbId !== '') values.push(tmdbId);
+  if (Number.isFinite(numeric)) values.push(numeric);
+  if (text) values.push(text);
+  return { tmdbId: { $in: values } };
+};
 
 const numericOrNull = value => {
   if (value == null || value === '') return null;
@@ -134,9 +146,7 @@ export const movieResolvers = {
       const collection = db.collection('movies');
 
       try {
-        const theMovie = await collection.findOne({
-          tmdbId
-        });
+        const theMovie = await collection.findOne(tmdbIdQuery(tmdbId));
 
         if (!theMovie) {
           return {
@@ -175,9 +185,23 @@ export const movieResolvers = {
       return mapTmdbMovie(payload, genres);
     },
 
-    async fetchPossibleMovieMatches(_, { title }) {
-      console.log('Fetching possible movie matches for title:', title);
+    async tmdbMovieImages(_, { tmdbId }) {
+      const response = await tmdbFetch(
+        `https://api.themoviedb.org/3/movie/${tmdbId}/images?api_key=${process.env.TMDB_API_KEY}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch images from TMDB');
+      }
 
+      const payload = await response.json();
+
+      return {
+        posters: selectPosterPaths(payload.posters),
+        backdrops: selectBackdropPaths(payload.backdrops)
+      };
+    },
+
+    async fetchPossibleMovieMatches(_, { title }) {
       try {
         // First get broad results from TMDB
         const response = await fetch(
@@ -189,7 +213,6 @@ export const movieResolvers = {
         }
 
         const tmdbData = await response.json();
-        console.log('TMDB data:', tmdbData);
 
         // Configure fuzzy search options
         const fuseOptions = {
@@ -268,7 +291,6 @@ export const movieResolvers = {
       const randomMovies = await collection
         .aggregate([{ $sample: { size: 2 } }])
         .toArray();
-      console.log(randomMovies[0]);
       if (randomMovies.length < 2) {
         throw new Error('Could not retrieve two movies for matchup.');
       }
@@ -321,8 +343,7 @@ export const movieResolvers = {
       }
 
       return {
-        backdropPath:
-          movie[0].backdropImages?.w1920 || movie[0].backdropPath
+        backdropPath: movie[0].backdropImages?.w1920 || movie[0].backdropPath
       };
     }
   },
@@ -345,7 +366,15 @@ export const movieResolvers = {
 
       let collection = db.collection('movies');
 
-      const { addedBy, lastUpdated, createdAt, totalWins, totalLosses, winningPercentage, totalComparisons } = args;
+      const {
+        addedBy,
+        lastUpdated,
+        createdAt,
+        totalWins,
+        totalLosses,
+        winningPercentage,
+        totalComparisons
+      } = args;
       const movieData = {
         ...movieFieldsFromArgs(args),
         addedBy,
@@ -375,7 +404,9 @@ export const movieResolvers = {
         ) {
           setImmediate(async () => {
             try {
-              console.log(`🔄 Processing images for new movie: ${movieData.title}`);
+              console.log(
+                `🔄 Processing images for new movie: ${movieData.title}`
+              );
               await processMovieImages(newMovie, true, db);
               console.log(
                 `✅ Background image processing completed for: ${movieData.title}`
@@ -399,7 +430,6 @@ export const movieResolvers = {
       if (!token) {
         throw new Error('Must be logged in to update movies');
       }
-      console.log('Update movie token:', token);
       try {
         jwt.verify(
           token.replace('Bearer ', ''),
@@ -422,8 +452,8 @@ export const movieResolvers = {
       }
 
       // If not found and it's numeric, try by tmdbId
-      if (!movieInDb && !isNaN(parseInt(id))) {
-        movieInDb = await collection.findOne({ tmdbId: id });
+      if (!movieInDb && id != null && id !== '') {
+        movieInDb = await collection.findOne(tmdbIdQuery(id));
         if (movieInDb) {
           queryId = movieInDb._id;
         }

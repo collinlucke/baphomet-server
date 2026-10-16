@@ -6,6 +6,11 @@ schema {
 scalar DateTime
 scalar JSON
 
+type TmdbMovieImages {
+  posters: [String!]!
+  backdrops: [String!]!
+}
+
 type Query {
   getMovies(limit: Int, title: String, cursor: String, sortBy: String, sortOrder: String): MoviesResult
   getMovieDetails(id: ID!): Movie
@@ -17,6 +22,7 @@ type Query {
   getUserDetails(userId: ID!): User
   getUserLeaderboard(cursor: String): LeaderboardResult
   fetchMovieFromTmdb(tmdbId: String!): Movie
+  tmdbMovieImages(tmdbId: String!): TmdbMovieImages
   fetchPossibleMovieMatches(title: String!): PossibleMovieMatches
   getImage(tmdbUrl: String!, type: ImageType!, size: String, ownerId: String!): String
   getImageVariants(tmdbUrl: String!, type: ImageType!, ownerId: String!): ImageVariants 

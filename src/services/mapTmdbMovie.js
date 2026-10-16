@@ -1,4 +1,5 @@
 import { isCastLikeCrewJob, isKeptCrewJob, shapeCredits } from './creditFilter.js';
+import { selectBackdropPaths, selectPosterPaths } from './tmdbImages.js';
 
 const names = items =>
   (items || []).map(item => item.english_name || item.name).filter(Boolean);
@@ -10,6 +11,8 @@ export const mapTmdbMovie = (payload, genres = []) => {
   const keywords = payload.keywords?.keywords || payload.keywords?.results || [];
   const logos = images.logos || [];
   const englishLogo = logos.find(logo => logo.iso_639_1 === 'en') || logos[0];
+  const posterPaths = selectPosterPaths(images.posters, payload.poster_path);
+  const backdropPaths = selectBackdropPaths(images.backdrops, payload.backdrop_path);
 
   const certifications = releaseResults.flatMap(country =>
     (country.release_dates || [])
@@ -54,13 +57,11 @@ export const mapTmdbMovie = (payload, genres = []) => {
       .filter(Boolean),
     originCountries: payload.origin_country || [],
     keywords: keywords.map(keyword => keyword.name).filter(Boolean),
-    posterPath: payload.poster_path || '',
-    backdropPath: payload.backdrop_path || '',
+    posterPath: posterPaths[0] || '',
+    backdropPath: backdropPaths[0] || '',
     logoPath: englishLogo?.file_path || '',
-    posterPaths: (images.posters || []).map(poster => poster.file_path).filter(Boolean),
-    backdropPaths: (images.backdrops || [])
-      .map(backdrop => backdrop.file_path)
-      .filter(Boolean),
+    posterPaths,
+    backdropPaths,
     genres,
     certifications,
     videos: (payload.videos?.results || [])
