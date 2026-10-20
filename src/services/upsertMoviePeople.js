@@ -32,7 +32,8 @@ export const attachPeople = async (db, credits = []) => {
     return {
       ...credit,
       name: person?.name || '',
-      profilePath: person?.profilePath || ''
+      profilePath: person?.profilePath || '',
+      profileImages: person?.profileImages || null
     };
   });
 };

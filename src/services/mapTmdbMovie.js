@@ -93,9 +93,29 @@ export const mapTmdbMovie = (payload, genres = []) => {
 };
 
 export const creditPersonStubs = payload => {
+  const shaped = shapeCredits(
+    (payload.credits?.cast || [])
+      .filter(member => member.id)
+      .map(member => ({
+        personId: member.id,
+        character: member.character || '',
+        order: member.order ?? 0
+      })),
+    (payload.credits?.crew || [])
+      .filter(member => member.id)
+      .map(member => ({
+        personId: member.id,
+        job: member.job || '',
+        department: member.department || ''
+      }))
+  );
+  const keptIds = new Set([
+    ...shaped.cast.map(row => row.personId),
+    ...shaped.crew.map(row => row.personId)
+  ]);
   const byId = new Map();
   const add = (member, fallbackDepartment) => {
-    if (!member?.id || byId.has(member.id)) return;
+    if (!member?.id || !keptIds.has(member.id) || byId.has(member.id)) return;
     byId.set(member.id, {
       tmdbId: member.id,
       name: member.name || '',

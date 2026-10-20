@@ -24,6 +24,7 @@ type Query {
   fetchMovieFromTmdb(tmdbId: String!): Movie
   tmdbMovieImages(tmdbId: String!): TmdbMovieImages
   fetchPossibleMovieMatches(title: String!): PossibleMovieMatches
+  searchPeople(name: String!): [PersonSearchResult!]!
   getImage(tmdbUrl: String!, type: ImageType!, size: String, ownerId: String!): String
   getImageVariants(tmdbUrl: String!, type: ImageType!, ownerId: String!): ImageVariants 
   getMovieImage(movieId: ID!, imageType: ImageType!, size: String): String
@@ -240,12 +241,20 @@ input VideoInput {
   official: Boolean
 }
 
+type PersonSearchResult {
+  personId: Int
+  name: String
+  profilePath: String
+  knownFor: String
+}
+
 type CastCredit {
   personId: Int
   character: String
   order: Int
   name: String
   profilePath: String
+  profileImages: ImageVariants
 }
 
 input CastCreditInput {
@@ -260,6 +269,7 @@ type CrewCredit {
   department: String
   name: String
   profilePath: String
+  profileImages: ImageVariants
 }
 
 input CrewCreditInput {

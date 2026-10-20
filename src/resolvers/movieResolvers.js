@@ -5,7 +5,10 @@ import { ObjectId } from 'mongodb';
 import Fuse from 'fuse.js';
 import { mapTmdbMovie, creditPersonStubs } from '../services/mapTmdbMovie.js';
 import { tmdbFetch, tmdbMovieUrl } from '../services/tmdbClient.js';
-import { selectBackdropPaths, selectPosterPaths } from '../services/tmdbImages.js';
+import {
+  selectBackdropPaths,
+  selectPosterPaths
+} from '../services/tmdbImages.js';
 import { upsertMoviePeople } from '../services/upsertMoviePeople.js';
 
 const tmdbIdQuery = tmdbId => {
@@ -201,6 +204,31 @@ export const movieResolvers = {
       };
     },
 
+    async searchPeople(_, { name }) {
+      const query = name?.trim();
+      if (!query) return [];
+
+      const response = await tmdbFetch(
+        `https://api.themoviedb.org/3/search/person?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to search people on TMDB');
+      }
+
+      const data = await response.json();
+      return (data.results || []).slice(0, 8).map(person => ({
+        personId: person.id,
+        name: person.name || '',
+        profilePath: person.profile_path || '',
+        knownFor: (person.known_for || [])
+          .map(item => item.title || item.name)
+          .filter(Boolean)
+          .slice(0, 2)
+          .join(', ')
+      }));
+    },
+
     async fetchPossibleMovieMatches(_, { title }) {
       try {
         // First get broad results from TMDB
@@ -272,6 +300,10 @@ export const movieResolvers = {
       if (!movie) {
         throw new Error('Movie not found');
       }
+
+      movie.cast = [...(movie.cast || [])]
+        .sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+        .slice(0, 10);
 
       return movie;
     },

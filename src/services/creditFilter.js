@@ -64,5 +64,9 @@ export function shapeCredits(cast = [], crew = []) {
     }
   }
 
-  return { cast: nextCast, crew: nextCrew };
+  nextCast.sort(
+    (left, right) => (Number(left.order) || 0) - (Number(right.order) || 0)
+  );
+
+  return { cast: nextCast.slice(0, 10), crew: nextCrew };
 }
