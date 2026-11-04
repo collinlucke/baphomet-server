@@ -129,6 +129,8 @@ type Mutation {
     birthday: String
   ): AuthToken
 
+  refreshAccessToken(refreshToken: String!): AuthToken
+
   submitVote(movie1Id: ID!, movie2Id: ID!, winnerId: ID!): VoteResult
 
   cleanupVotes(userId: ID, movieId: ID, resetAll: Boolean): CleanupResult
@@ -319,6 +321,7 @@ type LeaderboardResult {
 
 type AuthToken {
   token: String!
+  refreshToken: String!
   user: User!
 }
 

@@ -1,8 +1,42 @@
+import { randomUUID } from 'node:crypto';
 import { db } from '../dBConnection.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
-import { generateToken } from '../generateToken.js';
+import { generateToken, tokenExpiresIn } from '../generateToken.js';
+
+const buildAuthTokens = (user, refreshTokenId) => {
+  const expiresIn = tokenExpiresIn(user.role);
+  const subject = { id: user.id, email: user.email };
+
+  return {
+    token: generateToken(
+      subject,
+      process.env.ACCESS_TOKEN_SECRET,
+      expiresIn
+    ),
+    refreshToken: generateToken(
+      { ...subject, jti: refreshTokenId },
+      process.env.REFRESH_TOKEN_SECRET,
+      expiresIn
+    )
+  };
+};
+
+const toAuthUser = user => ({
+  id: user._id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  avatarUrl: user.avatarUrl,
+  birthday: user.birthday,
+  username: user.username,
+  email: user.email,
+  displayName: user.displayName,
+  totalVotes: user.totalVotes || 0,
+  joinDate: (user.joinDate || user.createdAt).toISOString(),
+  role: user.role || 'user',
+  emailVerified: user.emailVerified || false
+});
 
 export const userResolvers = {
   Query: {
@@ -120,36 +154,25 @@ export const userResolvers = {
         );
       }
 
+      const refreshTokenId = randomUUID();
+
       await collection.updateOne(
         { _id: user._id },
         {
           $set: {
             lastLogin: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            refreshTokenId
           }
         }
       );
 
       return {
-        token: generateToken(
-          { id: user._id, email: user.email },
-          process.env.ACCESS_TOKEN_SECRET,
-          '7d'
+        ...buildAuthTokens(
+          { id: user._id, email: user.email, role: user.role },
+          refreshTokenId
         ),
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          avatarUrl: user.avatarUrl,
-          birthday: user.birthday,
-          username: user.username,
-          email: user.email,
-          displayName: user.displayName,
-          totalVotes: user.totalVotes || 0,
-          joinDate: (user.joinDate || user.createdAt).toISOString(),
-          role: user.role || 'user',
-          emailVerified: user.emailVerified || false
-        }
+        user: toAuthUser(user)
       };
     },
     async signup(
@@ -202,6 +225,7 @@ export const userResolvers = {
 
       const saltRounds = 10;
       const passwordHash = await bcrypt.hash(password, saltRounds);
+      const refreshTokenId = randomUUID();
 
       const newUser = {
         username,
@@ -218,6 +242,7 @@ export const userResolvers = {
         birthday,
         emailVerified: false,
         verificationToken: null,
+        refreshTokenId,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -229,10 +254,9 @@ export const userResolvers = {
       }
 
       return {
-        token: generateToken(
-          { id: result.insertedId, email },
-          process.env.ACCESS_TOKEN_SECRET,
-          '6h'
+        ...buildAuthTokens(
+          { id: result.insertedId, email, role: 'user' },
+          refreshTokenId
         ),
         user: {
           id: result.insertedId,
@@ -247,6 +271,50 @@ export const userResolvers = {
           role: 'user',
           emailVerified: false
         }
+      };
+    },
+    async refreshAccessToken(_, { refreshToken }) {
+      let decoded;
+      try {
+        decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+      } catch {
+        throw new Error('Refresh token is invalid.');
+      }
+
+      if (!decoded?.id || !decoded?.jti) {
+        throw new Error('Refresh token is invalid.');
+      }
+
+      let userId;
+      try {
+        userId = new ObjectId(decoded.id);
+      } catch {
+        throw new Error('Refresh token is invalid.');
+      }
+
+      const collection = db.collection('users');
+      const nextRefreshTokenId = randomUUID();
+      const user = await collection.findOneAndUpdate(
+        { _id: userId, refreshTokenId: decoded.jti },
+        {
+          $set: {
+            refreshTokenId: nextRefreshTokenId,
+            updatedAt: new Date()
+          }
+        },
+        { returnDocument: 'before' }
+      );
+
+      if (!user) {
+        throw new Error('Refresh token is invalid.');
+      }
+
+      return {
+        ...buildAuthTokens(
+          { id: user._id, email: user.email, role: user.role },
+          nextRefreshTokenId
+        ),
+        user: toAuthUser(user)
       };
     }
   }
